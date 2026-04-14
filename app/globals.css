@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SPOTIFY DESIGN TOKENS — Tailwind v4 Theme
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@theme inline {
+  /* Colors */
+  --color-sp-bg:        #121212;
+  --color-sp-card:      #181818;
+  --color-sp-hover:     #282828;
+  --color-sp-input:     #3E3E3E;
+  --color-sp-green:     #1DB954;
+  --color-sp-green-h:   #1ed760;
+  --color-sp-white:     #FFFFFF;
+  --color-sp-secondary: #B3B3B3;
+  --color-sp-muted:     #535353;
+  --color-sp-danger:    #E22134;
+  --color-sp-warning:   #F59B23;
+
+  /* Typography */
+  --font-sans: "Outfit", sans-serif;
+
+  /* Border radius */
+  --radius-card: 8px;
+  --radius-pill: 500px;
+  --radius-input: 4px;
+
+  /* Animation */
+  --ease-sp: cubic-bezier(0.3, 0, 0, 1);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   BASE STYLES
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #121212;
+  color: #FFFFFF;
+  font-family: "Outfit", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SCROLLBAR CUSTOM
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #535353; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #B3B3B3; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SHIMMER SKELETON ANIMATION
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #282828 25%,
+    #333333 50%,
+    #282828 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SWIPE ACTIONS (mobile)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.swipe-container {
+  overflow: hidden;
+  position: relative;
+}
+
+.swipe-item {
+  transition: transform 200ms ease;
+  touch-action: pan-y;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   PROGRESS BAR ANIMATION
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@keyframes progress-fill {
+  from { width: 0%; }
+  to   { width: var(--progress-width); }
+}
+
+.progress-bar-fill {
+  animation: progress-fill 800ms var(--ease-sp) forwards;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TOAST ANIMATIONS
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@keyframes toast-in {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes toast-out {
+  from { transform: translateY(0);    opacity: 1; }
+  to   { transform: translateY(100%); opacity: 0; }
+}
+
+.toast-enter { animation: toast-in  200ms ease forwards; }
+.toast-exit  { animation: toast-out 200ms ease forwards; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   FAB PULSE
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@keyframes fab-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(29, 185, 84, 0.4); }
+  50%       { box-shadow: 0 0 0 12px rgba(29, 185, 84, 0);  }
+}
+
+.fab-pulse { animation: fab-pulse 2s infinite; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   FOCUS VISIBLE GLOBAL
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+:focus-visible {
+  outline: 2px solid #1DB954;
+  outline-offset: 2px;
+}
