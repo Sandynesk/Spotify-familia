@@ -1,4 +1,4 @@
-cimport { ImageResponse } from 'next/og'
+import { ImageResponse } from 'next/og'
 
 // Image metadata
 export const size = {
