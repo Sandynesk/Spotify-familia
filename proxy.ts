@@ -29,30 +29,26 @@ export async function proxy(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     const { pathname } = request.nextUrl
 
-    // Rotas públicas
-    if (pathname.startsWith('/login') || pathname.startsWith('/api/auth')) {
-      if (user && pathname === '/login') {
-        return NextResponse.redirect(new URL('/', request.url))
-      }
-      return supabaseResponse
-    }
+    const isPublicRoute = ['/', '/login', '/cadastro'].includes(pathname)
+    const isDashboardRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/membros')
 
-    // Rota protegida
-    if (!user) {
+    // Se tentar acessar rota protegida sem estar logado
+    if (isDashboardRoute && !user) {
       const url = request.nextUrl.clone()
       url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+
+    // Se estiver logado e tentar ir para o login ou cadastro, manda para o dashboard
+    if (user && (pathname === '/login' || pathname === '/cadastro')) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard'
       return NextResponse.redirect(url)
     }
 
     return supabaseResponse
   } catch (error) {
-    console.error('Middleware error:', error)
-    // Em caso de erro catastrófico, tenta redirecionar para login por segurança
-    if (!request.nextUrl.pathname.startsWith('/login')) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/login'
-      return NextResponse.redirect(url)
-    }
+    console.error('Proxy error:', error)
     return supabaseResponse
   }
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Mail, Lock, User, CheckCircle2 } from 'lucide-react'
@@ -11,13 +11,12 @@ import { useToast } from '@/components/ui/Toast'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 
-function LoginContent() {
-  const searchParams = useSearchParams()
+function CadastroContent() {
   const router = useRouter()
   const { success, error: toastError } = useToast()
   const supabase = createClient()
   
-  const [isLogin, setIsLogin] = useState(searchParams.get('tab') !== 'register')
+  const [isLogin, setIsLogin] = useState(false) // Default to Register
   const [loading, setLoading] = useState(false)
   
   const [nome, setNome] = useState('')
@@ -29,14 +28,14 @@ function LoginContent() {
     e.preventDefault()
     setLoading(true)
 
-    if (isLogin) {
-      if (!email || !senha) {
-        toastError('Preencha os campos obrigatórios.')
-        setLoading(false)
-        return
-      }
+    try {
+      if (isLogin) {
+        if (!email || !senha) {
+          toastError('Preencha os campos obrigatórios.')
+          setLoading(false)
+          return
+        }
 
-      try {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
         if (error) {
           console.error('Login error:', error)
@@ -50,23 +49,18 @@ function LoginContent() {
           router.push('/dashboard')
           router.refresh()
         }
-      } catch (err) {
-        console.error('Unexpected login error:', err)
-        toastError('Ocorreu um erro inesperado ao entrar.')
-      }
-    } else {
-      if (!email || !senha || !nome) {
-        toastError('Preencha todos os campos.')
-        setLoading(false)
-        return
-      }
-      if (senha !== confirmaSenha) {
-        toastError('As senhas não coincidem.')
-        setLoading(false)
-        return
-      }
-      
-      try {
+      } else {
+        if (!email || !senha || !nome) {
+          toastError('Preencha todos os campos.')
+          setLoading(false)
+          return
+        }
+        if (senha !== confirmaSenha) {
+          toastError('As senhas não coincidem.')
+          setLoading(false)
+          return
+        }
+        
         const { data, error } = await supabase.auth.signUp({
           email,
           password: senha,
@@ -84,15 +78,16 @@ function LoginContent() {
             router.push('/dashboard')
             router.refresh()
           } else {
-            success('Conta criada! Verifique seu e-mail para confirmar o cadastro.')
+            success('Verifique seu e-mail para confirmar o cadastro e ativar sua conta.')
           }
         }
-      } catch (err) {
-        console.error('Unexpected signup error:', err)
-        toastError('Ocorreu um erro inesperado ao criar conta.')
       }
+    } catch (err) {
+      console.error('Unexpected auth error:', err)
+      toastError('Ocorreu um erro inesperado. Tente novamente.')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const getPasswordStrength = () => {
@@ -150,7 +145,7 @@ function LoginContent() {
         </button>
       </div>
 
-      <form onSubmit={handleAuth} className="flex flex-col gap-4">
+      <form onSubmit={handleAuth} className="space-y-4">
         <AnimatePresence mode="popLayout">
           {!isLogin && (
             <motion.div
@@ -158,7 +153,6 @@ function LoginContent() {
               animate={{ opacity: 1, height: 'auto', scale: 1 }}
               exit={{ opacity: 0, height: 0, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="overflow-hidden p-1 -m-1"
             >
               <AuthInput
                 label="Nome completo"
@@ -196,7 +190,7 @@ function LoginContent() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden flex flex-col gap-4 p-1 -m-1"
+              className="overflow-hidden space-y-4"
             >
               <div className="mb-6 px-1">
                 <div className="flex gap-1.5 h-1.5 w-full">
@@ -222,14 +216,6 @@ function LoginContent() {
           )}
         </AnimatePresence>
 
-        {isLogin && (
-          <div className="flex justify-end pb-2">
-            <Link href="#" className="flex hover:underline text-sm font-medium text-[#1DB954]" onClick={(e) => { e.preventDefault(); alert("WIP"); }}>
-              Esqueci minha senha
-            </Link>
-          </div>
-        )}
-
         <Button 
           type="submit" 
           loading={loading}
@@ -243,51 +229,37 @@ function LoginContent() {
   )
 }
 
-export default function LoginPage() {
+export default function CadastroPage() {
   return (
     <div className="min-h-screen bg-[#121212] flex antialiased">
       <Link href="/" className="absolute top-6 left-6 md:hidden z-20">
         <SpotifyLogo size={32} color="#1DB954" />
       </Link>
 
-      {/* COLS LEFT - DESKTOP ONLY */}
       <div className="hidden md:flex flex-col flex-1 max-w-[40%] bg-gradient-to-br from-[#0d2b1a] to-[#1DB954] p-12 lg:p-20 relative overflow-hidden text-white justify-between">
         <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-        
         <Link href="/" className="relative z-10 inline-flex">
           <SpotifyLogo size={48} color="white" />
         </Link>
-
         <div className="relative z-10 flex flex-col gap-6 w-full max-w-sm mt-auto mb-auto">
           <h1 className="text-4xl lg:text-5xl font-black leading-tight tracking-tight mb-4">
-            Seu plano família.<br />Do seu jeito.
+            Crie sua conta.
           </h1>
           <ul className="space-y-4">
             <li className="flex items-center gap-3 text-lg font-medium">
-              <CheckCircle2 className="text-white" /> Controle quem está em dia
+              <CheckCircle2 className="text-white" /> Grátis para sempre
             </li>
             <li className="flex items-center gap-3 text-lg font-medium">
-              <CheckCircle2 className="text-white" /> Divida os custos sem drama
-            </li>
-            <li className="flex items-center gap-3 text-lg font-medium">
-              <CheckCircle2 className="text-white" /> Histórico completo de pagamentos
+              <CheckCircle2 className="text-white" /> Controle total do plano
             </li>
           </ul>
         </div>
       </div>
 
-      {/* COLS RIGHT - FORM */}
       <div className="flex-1 flex flex-col justify-center items-center p-6 lg:p-12 relative">
-        {/* Mobile Header Equivalent */}
-        <div className="md:hidden w-full max-w-md mx-auto mb-10 text-center">
-           <h1 className="text-2xl font-bold text-white mb-2 tracking-tight">O fim do calote.</h1>
-           <p className="text-[#B3B3B3] text-sm">Organize e cobre os amigos facilmente.</p>
-        </div>
-
         <div className="w-full max-w-md mx-auto relative z-10">
           <Suspense fallback={<div className="h-40 flex items-center justify-center"><div className="w-8 h-8 rounded-full border-t border-[#1DB954] animate-spin" /></div>}>
-            <LoginContent />
+            <CadastroContent />
           </Suspense>
         </div>
       </div>
