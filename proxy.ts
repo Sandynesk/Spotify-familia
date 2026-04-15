@@ -30,10 +30,10 @@ export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl
 
     const isPublicRoute = ['/', '/login', '/cadastro'].includes(pathname)
-    const isDashboardRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/membros')
+    const isProtectedRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/membros') || pathname.startsWith('/historico')
 
     // Se tentar acessar rota protegida sem estar logado
-    if (isDashboardRoute && !user) {
+    if (isProtectedRoute && !user) {
       const url = request.nextUrl.clone()
       url.pathname = '/login'
       return NextResponse.redirect(url)
