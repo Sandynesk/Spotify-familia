@@ -71,7 +71,8 @@ function LoginContent() {
           email,
           password: senha,
           options: {
-            data: { full_name: nome }
+            data: { full_name: nome },
+            redirectTo: `${window.location.origin}/api/auth/callback?next=/dashboard`
           }
         })
         

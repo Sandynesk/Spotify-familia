@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Users, History } from 'lucide-react'
 
 const navItems = [
-  { href: '/',        label: 'Home',      icon: LayoutDashboard },
+  { href: '/dashboard',        label: 'Home',      icon: LayoutDashboard },
   { href: '/membros', label: 'Membros',   icon: Users },
   { href: '/historico', label: 'Histórico', icon: History },
 ]
@@ -17,7 +17,7 @@ export function BottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-[#0a0a0a]/95 backdrop-blur-md border-t border-white/5">
       <div className="flex items-center justify-around px-2 py-2 safe-area-pb">
         {navItems.map(({ href, label, icon: Icon }) => {
-          const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href)
+          const isActive = href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href)
           return (
             <Link
               key={href}

@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 const navItems = [
-  { href: '/',          label: 'Dashboard',  icon: LayoutDashboard },
+  { href: '/dashboard', label: 'Dashboard',  icon: LayoutDashboard },
   { href: '/membros',   label: 'Membros',    icon: Users },
   { href: '/historico', label: 'Histórico',  icon: History },
 ]
@@ -28,7 +28,7 @@ export function Sidebar() {
     <aside className="hidden lg:flex flex-col w-64 fixed left-0 top-0 h-full bg-[#0a0a0a] border-r border-white/5 z-30">
       {/* Logo */}
       <div className="p-6 pb-4">
-        <Link href="/" className="flex items-center gap-2.5 group">
+        <Link href="/dashboard" className="flex items-center gap-2.5 group">
           <SpotifyLogo size={32} color="#1DB954" className="group-hover:scale-110 transition-transform duration-300" />
           <div>
             <span className="font-bold text-white text-base">SpotiFamília</span>
@@ -39,7 +39,7 @@ export function Sidebar() {
       {/* Nav */}
       <nav className="flex-1 px-3 space-y-1">
         {navItems.map(({ href, label, icon: Icon }) => {
-          const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href)
+          const isActive = href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href)
           return (
             <Link
               key={href}
