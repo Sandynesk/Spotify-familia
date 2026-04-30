@@ -1,6 +1,8 @@
 import { Header } from '@/components/layout/Header'
 import { MemberForm } from '@/components/members/MemberForm'
 
+export const dynamic = 'force-dynamic'
+
 export default function NovoMembroPage() {
   return (
     <>

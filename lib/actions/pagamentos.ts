@@ -153,3 +153,51 @@ export async function getDashboardData() {
     },
   }
 }
+
+export async function getVisaoGeralData(ano: number = new Date().getFullYear()) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  // Buscar membros ativos
+  const { data: membros } = await supabase
+    .from('membros')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('ativo', true)
+    .order('nome')
+
+  if (!membros || membros.length === 0) {
+    return {
+      membros: [],
+      pagamentos: [],
+      ano,
+    }
+  }
+
+  // Buscar todos os pagamentos do ano
+  const dataInicio = `${ano}-01-01`
+  const dataFim = `${ano}-12-31`
+
+  const membroIds = membros.map(m => m.id)
+
+  const { data: pagamentos } = await supabase
+    .from('pagamentos')
+    .select('*')
+    .in('membro_id', membroIds)
+    .gte('mes_referencia', dataInicio)
+    .lte('mes_referencia', dataFim)
+    .order('mes_referencia', { ascending: true })
+
+  const pagamentosComStatus = (pagamentos || []).map(p => ({
+    ...p,
+    status: getEffectiveStatus(p.mes_referencia, p.status) as 'pendente' | 'pago' | 'atrasado',
+  }))
+
+  return {
+    membros,
+    pagamentos: pagamentosComStatus,
+    ano,
+  }
+}

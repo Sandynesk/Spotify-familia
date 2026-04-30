@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import React, { useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -72,7 +74,7 @@ function LoginContent() {
           password: senha,
           options: {
             data: { full_name: nome },
-            redirectTo: `${window.location.origin}/api/auth/callback?next=/dashboard`
+            emailRedirectTo: `${window.location.origin}/api/auth/callback?next=/dashboard`
           }
         })
         
