@@ -97,60 +97,65 @@ export async function desfazerPagamento(pagamentoId: string, membroId: string, m
 }
 
 export async function getDashboardData() {
-  const supabase = await createClient()
+  try {
+    const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
 
-  // Buscar membros ativos + seus pagamentos do mês atual
-  const mesAtual = getCurrentMonthISO()
+    // Buscar membros ativos + seus pagamentos do mês atual
+    const mesAtual = getCurrentMonthISO()
 
-  const { data: membros } = await supabase
-    .from('membros')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('ativo', true)
+    const { data: membros } = await supabase
+      .from('membros')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('ativo', true)
 
-  if (!membros || membros.length === 0) {
-    return {
-      membros: [],
-      pagamentosMes: [],
-      summary: { totalMembros: 0, totalAReceber: 0, totalPago: 0, totalAtrasado: 0, progresso: 0 },
+    if (!membros || membros.length === 0) {
+      return {
+        membros: [],
+        pagamentosMes: [],
+        summary: { totalMembros: 0, totalAReceber: 0, totalPago: 0, totalAtrasado: 0, progresso: 0 },
+      }
     }
-  }
 
-  const membroIds = membros.map(m => m.id)
+    const membroIds = membros.map(m => m.id)
 
-  const { data: pagamentos } = await supabase
-    .from('pagamentos')
-    .select('*')
-    .in('membro_id', membroIds)
-    .eq('mes_referencia', mesAtual)
+    const { data: pagamentos } = await supabase
+      .from('pagamentos')
+      .select('*')
+      .in('membro_id', membroIds)
+      .eq('mes_referencia', mesAtual)
 
-  const pagamentosComStatus = (pagamentos || []).map(p => ({
-    ...p,
-    status: getEffectiveStatus(p.mes_referencia, p.status) as 'pendente' | 'pago' | 'atrasado',
-  }))
+    const pagamentosComStatus = (pagamentos || []).map(p => ({
+      ...p,
+      status: getEffectiveStatus(p.mes_referencia, p.status) as 'pendente' | 'pago' | 'atrasado',
+    }))
 
-  const totalAReceber = membros.reduce((acc, m) => acc + Number(m.valor_mensal), 0)
-  const totalPago = pagamentosComStatus
-    .filter(p => p.status === 'pago')
-    .reduce((acc, p) => acc + Number(p.valor), 0)
-  const totalAtrasado = pagamentosComStatus
-    .filter(p => p.status === 'atrasado')
-    .reduce((acc, p) => acc + Number(p.valor), 0)
-  const progresso = totalAReceber > 0 ? Math.round((totalPago / totalAReceber) * 100) : 0
+    const totalAReceber = membros.reduce((acc, m) => acc + Number(m.valor_mensal), 0)
+    const totalPago = pagamentosComStatus
+      .filter(p => p.status === 'pago')
+      .reduce((acc, p) => acc + Number(p.valor), 0)
+    const totalAtrasado = pagamentosComStatus
+      .filter(p => p.status === 'atrasado')
+      .reduce((acc, p) => acc + Number(p.valor), 0)
+    const progresso = totalAReceber > 0 ? Math.round((totalPago / totalAReceber) * 100) : 0
 
-  return {
-    membros,
-    pagamentosMes: pagamentosComStatus,
-    summary: {
-      totalMembros: membros.length,
-      totalAReceber,
-      totalPago,
-      totalAtrasado,
-      progresso,
-    },
+    return {
+      membros,
+      pagamentosMes: pagamentosComStatus,
+      summary: {
+        totalMembros: membros.length,
+        totalAReceber,
+        totalPago,
+        totalAtrasado,
+        progresso,
+      },
+    }
+  } catch (error) {
+    console.error('Error in getDashboardData:', error)
+    return null
   }
 }
 
