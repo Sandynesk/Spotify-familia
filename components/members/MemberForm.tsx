@@ -79,7 +79,7 @@ export function MemberForm({ membro }: MemberFormProps) {
         error(`Erro: ${result.error}`)
       } else {
         success(membro ? 'Membro atualizado!' : 'Membro adicionado com sucesso!')
-        router.push(membro ? `/membros/${membro.id}` : '/')
+        router.push(membro ? `/membros/${membro.id}` : '/dashboard')
         router.refresh()
       }
     })

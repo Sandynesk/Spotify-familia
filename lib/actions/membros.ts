@@ -56,7 +56,9 @@ export async function criarMembro(formData: MembroFormData) {
   }
 
   revalidatePath('/')
-  revalidatePath('/membros')
+  revalidatePath('/dashboard')
+  revalidatePath('/historico')
+  revalidatePath('/visao-geral')
   return { success: true, id: membro.id }
 }
 
@@ -81,8 +83,22 @@ export async function editarMembro(id: string, formData: MembroFormData) {
 
   if (error) return { error: error.message }
 
+  // Atualiza as parcelas futuras/não pagas do membro com o novo valor
+  const { error: payUpdateError } = await supabase
+    .from('pagamentos')
+    .update({ valor: formData.valor_mensal })
+    .eq('membro_id', id)
+    .neq('status', 'pago')
+
+  if (payUpdateError) {
+    console.error('Erro ao atualizar parcelas futuras:', payUpdateError.message)
+  }
+
   revalidatePath('/')
   revalidatePath(`/membros/${id}`)
+  revalidatePath('/dashboard')
+  revalidatePath('/historico')
+  revalidatePath('/visao-geral')
   return { success: true }
 }
 
@@ -101,8 +117,10 @@ export async function deletarMembro(id: string) {
   if (error) return { error: error.message }
 
   revalidatePath('/')
-  revalidatePath('/membros')
-  redirect('/')
+  revalidatePath('/dashboard')
+  revalidatePath('/historico')
+  revalidatePath('/visao-geral')
+  redirect('/dashboard')
 }
 
 export async function getMembros() {

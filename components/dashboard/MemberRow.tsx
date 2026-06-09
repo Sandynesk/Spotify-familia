@@ -50,7 +50,7 @@ export function MemberRow({ membro, pagamento }: MemberRowProps) {
 
       <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
         <span className="text-white text-sm font-semibold">
-          {formatCurrency(Number(membro.valor_mensal))}
+          {formatCurrency(Number(pagamento ? pagamento.valor : membro.valor_mensal))}
         </span>
         <Badge status={status} />
       </div>

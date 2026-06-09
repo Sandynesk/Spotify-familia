@@ -70,6 +70,9 @@ export async function marcarPago(pagamentoId: string, membroId: string) {
 
   revalidatePath('/')
   revalidatePath(`/membros/${membroId}`)
+  revalidatePath('/dashboard')
+  revalidatePath('/historico')
+  revalidatePath('/visao-geral')
   return { success: true }
 }
 
@@ -93,6 +96,9 @@ export async function desfazerPagamento(pagamentoId: string, membroId: string, m
 
   revalidatePath('/')
   revalidatePath(`/membros/${membroId}`)
+  revalidatePath('/dashboard')
+  revalidatePath('/historico')
+  revalidatePath('/visao-geral')
   return { success: true }
 }
 
@@ -133,7 +139,12 @@ export async function getDashboardData() {
       status: getEffectiveStatus(p.mes_referencia, p.status) as 'pendente' | 'pago' | 'atrasado',
     }))
 
-    const totalAReceber = membros.reduce((acc, m) => acc + Number(m.valor_mensal), 0)
+    const pagMap = new Map(pagamentosComStatus.map(p => [p.membro_id, p]))
+    const totalAReceber = membros.reduce((acc, m) => {
+      const p = pagMap.get(m.id)
+      const val = p ? Number(p.valor) : Number(m.valor_mensal)
+      return acc + val
+    }, 0)
     const totalPago = pagamentosComStatus
       .filter(p => p.status === 'pago')
       .reduce((acc, p) => acc + Number(p.valor), 0)
@@ -205,4 +216,27 @@ export async function getVisaoGeralData(ano: number = new Date().getFullYear()) 
     pagamentos: pagamentosComStatus,
     ano,
   }
+}
+
+export async function atualizarValorPagamento(pagamentoId: string, membroId: string, novoValor: number) {
+  const supabase = await createClient()
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) redirect('/login')
+
+  const { error } = await supabase
+    .from('pagamentos')
+    .update({
+      valor: novoValor,
+    })
+    .eq('id', pagamentoId)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/')
+  revalidatePath(`/membros/${membroId}`)
+  revalidatePath('/dashboard')
+  revalidatePath('/historico')
+  revalidatePath('/visao-geral')
+  return { success: true }
 }

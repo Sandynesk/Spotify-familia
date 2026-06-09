@@ -1,14 +1,17 @@
 'use client'
 import Link from 'next/link'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { SpotifyLogo } from '@/components/ui/SpotifyLogo'
 import { useEffect, useState } from 'react'
+import { Menu, X } from 'lucide-react'
 
 export function Navbar() {
   const { scrollY } = useScroll()
   const [isMounted, setIsMounted] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
   
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true)
   }, [])
 
@@ -53,12 +56,63 @@ export function Navbar() {
           </Link>
           <Link 
             href="/cadastro"
-            className="bg-[#1DB954] text-black font-bold text-sm px-6 py-2.5 rounded-full hover:scale-105 transition-transform"
+            className="bg-[#1DB954] text-black font-bold text-sm px-6 py-2.5 rounded-lg hover:scale-105 transition-transform hidden md:block"
           >
             Criar conta
           </Link>
+
+          {/* Botão Hambúrguer Mobile */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden text-white hover:text-[#1DB954] transition-colors p-1"
+            aria-label={isOpen ? 'Fechar menu' : 'Abrir menu'}
+          >
+            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
       </div>
+
+      {/* Menu Responsivo Mobile */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="absolute top-20 left-0 right-0 bg-[#121212]/95 backdrop-blur-lg border-b border-white/5 md:hidden py-6 px-4 flex flex-col gap-4 overflow-hidden"
+          >
+            <Link
+              href="/#funcionalidades"
+              onClick={() => setIsOpen(false)}
+              className="text-base font-semibold text-[#B3B3B3] hover:text-white transition-colors py-2 border-b border-white/5"
+            >
+              Funcionalidades
+            </Link>
+            <Link
+              href="/#como-funciona"
+              onClick={() => setIsOpen(false)}
+              className="text-base font-semibold text-[#B3B3B3] hover:text-white transition-colors py-2 border-b border-white/5"
+            >
+              Como funciona
+            </Link>
+            <Link
+              href="/login"
+              onClick={() => setIsOpen(false)}
+              className="text-base font-semibold text-white hover:text-[#1DB954] transition-colors py-2 border-b border-white/5"
+            >
+              Entrar
+            </Link>
+            <Link
+              href="/cadastro"
+              onClick={() => setIsOpen(false)}
+              className="bg-[#1DB954] text-black font-bold text-center text-sm py-3 rounded-lg hover:scale-102 transition-transform mt-2"
+            >
+              Criar conta
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </MotionNav>
   )
 }

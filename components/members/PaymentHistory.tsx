@@ -1,10 +1,10 @@
 'use client'
 
-import { useTransition } from 'react'
-import { CheckCircle, RotateCcw, Calendar } from 'lucide-react'
+import { useState, useTransition } from 'react'
+import { CheckCircle, RotateCcw, Calendar, Edit2, Check, X } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { useToast } from '@/components/ui/Toast'
-import { marcarPago, desfazerPagamento } from '@/lib/actions/pagamentos'
+import { marcarPago, desfazerPagamento, atualizarValorPagamento } from '@/lib/actions/pagamentos'
 import { formatShortMonthYear, formatDateTime } from '@/lib/utils/date'
 import { formatCurrency } from '@/lib/utils/currency'
 import type { Pagamento } from '@/types/database'
@@ -22,6 +22,8 @@ interface PaymentItemProps {
 function PaymentItem({ pagamento, membroId }: PaymentItemProps) {
   const { success, error } = useToast()
   const [pending, startTransition] = useTransition()
+  const [isEditing, setIsEditing] = useState(false)
+  const [editValue, setEditValue] = useState(String(pagamento.valor))
 
   function handleMarcarPago() {
     startTransition(async () => {
@@ -36,6 +38,24 @@ function PaymentItem({ pagamento, membroId }: PaymentItemProps) {
       const result = await desfazerPagamento(pagamento.id, membroId, pagamento.mes_referencia)
       if (result?.error) error('Erro ao desfazer pagamento')
       else success('Pagamento revertido')
+    })
+  }
+
+  function handleSalvarValor() {
+    const valorNum = parseFloat(editValue)
+    if (isNaN(valorNum) || valorNum < 0) {
+      error('Valor inválido')
+      return
+    }
+
+    startTransition(async () => {
+      const result = await atualizarValorPagamento(pagamento.id, membroId, valorNum)
+      if (result?.error) {
+        error('Erro ao atualizar valor')
+      } else {
+        success('Valor atualizado!')
+        setIsEditing(false)
+      }
     })
   }
 
@@ -61,15 +81,55 @@ function PaymentItem({ pagamento, membroId }: PaymentItemProps) {
         )}
       </div>
 
-      <div className="flex items-center gap-2 flex-shrink-0">
-        <span className="text-white text-sm font-semibold">
-          {formatCurrency(Number(pagamento.valor))}
-        </span>
-        <Badge status={pagamento.status} />
-      </div>
+      {isEditing ? (
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <input
+            type="number"
+            step="0.01"
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            className="w-16 px-2 py-1 text-xs bg-[#282828] border border-white/10 rounded text-white focus:outline-none focus:ring-1 focus:ring-[#1DB954]"
+            disabled={pending}
+            autoFocus
+          />
+          <button
+            onClick={handleSalvarValor}
+            disabled={pending}
+            className="w-7 h-7 rounded-full bg-[#1DB954]/10 hover:bg-[#1DB954]/20 flex items-center justify-center text-[#1DB954] transition-all active:scale-95 disabled:opacity-50"
+            aria-label="Salvar valor"
+          >
+            <Check className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => {
+              setIsEditing(false)
+              setEditValue(String(pagamento.valor))
+            }}
+            disabled={pending}
+            className="w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-[#B3B3B3] transition-all active:scale-95 disabled:opacity-50"
+            aria-label="Cancelar"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <span className="text-white text-sm font-semibold">
+            {formatCurrency(Number(pagamento.valor))}
+          </span>
+          <button
+            onClick={() => setIsEditing(true)}
+            className="w-7 h-7 rounded-full hover:bg-white/5 flex items-center justify-center text-[#535353] hover:text-white transition-all active:scale-95"
+            aria-label="Editar valor"
+          >
+            <Edit2 className="w-3 h-3" />
+          </button>
+          <Badge status={pagamento.status} />
+        </div>
+      )}
 
       {/* Actions */}
-      {pagamento.status !== 'pago' && (
+      {pagamento.status !== 'pago' && !isEditing && (
         <button
           onClick={handleMarcarPago}
           disabled={pending}
@@ -83,7 +143,7 @@ function PaymentItem({ pagamento, membroId }: PaymentItemProps) {
         </button>
       )}
 
-      {pagamento.status === 'pago' && (
+      {pagamento.status === 'pago' && !isEditing && (
         <button
           onClick={handleDesfazer}
           disabled={pending}

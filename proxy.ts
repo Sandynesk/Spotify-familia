@@ -39,8 +39,8 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(url)
     }
 
-    // Se estiver logado e tentar ir para o login ou cadastro, manda para o dashboard
-    if (user && (pathname === '/login' || pathname === '/cadastro')) {
+    // Se estiver logado e tentar ir para o login, manda para o dashboard
+    if (user && pathname === '/login') {
       const url = request.nextUrl.clone()
       url.pathname = '/dashboard'
       return NextResponse.redirect(url)

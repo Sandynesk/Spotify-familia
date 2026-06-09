@@ -127,9 +127,9 @@ function CadastroContent() {
         </motion.p>
       </div>
 
-      <div className="flex bg-[#2A2A2A] rounded-full p-1 mb-8 relative">
+      <div className="flex bg-[#2A2A2A] rounded-lg p-1 mb-8 relative">
         <div 
-          className="absolute bg-[#1DB954] top-1 bottom-1 rounded-full transition-all duration-300 ease-out"
+          className="absolute bg-[#1DB954] top-1 bottom-1 rounded-md transition-all duration-300 ease-out"
           style={{ width: 'calc(50% - 4px)', left: isLogin ? '4px' : '50%' }}
         />
         <button 

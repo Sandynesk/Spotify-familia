@@ -47,7 +47,7 @@ export default async function MembroDetailPage({ params }: Params) {
         {/* Desktop back */}
         <div className="hidden lg:flex items-center gap-4 mb-8">
           <Link
-            href="/"
+            href="/dashboard"
             className="text-[#B3B3B3] hover:text-white text-sm flex items-center gap-1 transition-colors"
           >
             ← Dashboard
