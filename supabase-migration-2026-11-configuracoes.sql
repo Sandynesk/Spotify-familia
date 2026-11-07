@@ -24,3 +24,6 @@ CREATE TRIGGER configuracoes_updated_at
   BEFORE UPDATE ON configuracoes
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at();
+
+-- Faz a API do Supabase enxergar a tabela nova imediatamente
+NOTIFY pgrst, 'reload schema';
