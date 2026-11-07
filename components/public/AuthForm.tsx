@@ -116,7 +116,12 @@ export function AuthForm({ mode: initialMode, initialError }: AuthFormProps) {
         },
       })
       if (error) {
-        setFormError('Não foi possível conectar com o Google. Verifique a configuração do provedor no Supabase.')
+        const msg = error.message.toLowerCase()
+        if (msg.includes('not enabled') || msg.includes('unsupported provider')) {
+          setFormError('O provedor Google ainda não foi ativado no painel do Supabase. Ative o toggle "Enable Sign in with Google" e clique em Save.')
+        } else {
+          setFormError('Não foi possível conectar com o Google. Verifique a configuração do provedor no Supabase.')
+        }
         setLoadingGoogle(false)
       }
     } catch {
