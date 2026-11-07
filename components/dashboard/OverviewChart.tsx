@@ -2,39 +2,33 @@
 
 import { useMemo } from 'react'
 import {
-  BarChart,
   Bar,
+  CartesianGrid,
+  ComposedChart,
+  Line,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from 'recharts'
+import { Card, SectionHeader } from '@/components/ui'
 import { formatCurrency } from '@/lib/utils/currency'
-import type { Pagamento } from '@/types/database'
+import type { ItemSerieMensal } from '@/lib/domain/insights'
 
 interface OverviewChartProps {
-  pagamentos: Pagamento[]
-  membros: { id: string; valor_mensal: number }[]
+  data: ItemSerieMensal[]
   ano: number
+  valorPlano: number
 }
 
-const MESES = [
-  'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-  'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
-]
-
-interface ChartData {
+interface ChartPoint extends ItemSerieMensal {
   mes: string
-  recebido: number
-  pendente: number
-  atrasado: number
+  plano: number
 }
 
 interface TooltipEntry {
   name?: string
-  value?: number
+  value?: number | string
   color?: string
 }
 
@@ -44,25 +38,27 @@ interface CustomTooltipProps {
   label?: string
 }
 
+const moedaCompacta = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+  notation: 'compact',
+  maximumFractionDigits: 0,
+})
+
 function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
-  if (!active || !payload || !payload.length) return null
+  if (!active || !payload?.length) return null
 
   return (
-    <div className="bg-app-surface border border-app-line rounded-[var(--radius-app-sm)] p-3 shadow-2xl font-app">
-      <p className="text-app-text font-semibold text-xs mb-2">{label}</p>
-      <div className="space-y-1.5 min-w-[140px]">
+    <div className="min-w-40 rounded-app-sm border border-app-line-strong bg-app-raised p-3 shadow-app-float">
+      <p className="mb-2 text-xs font-semibold text-app-text">{label}</p>
+      <div className="space-y-1.5">
         {payload.map(entry => (
-          <div key={entry.name} className="flex items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-1.5">
-              <span
-                className="w-2 h-2 rounded-full flex-shrink-0"
-                style={{ backgroundColor: entry.color }}
-              />
-              <span className="text-app-muted">{entry.name}:</span>
-            </div>
-            <span className="text-app-text font-semibold tabular-nums">
-              {formatCurrency(Number(entry.value ?? 0))}
+          <div key={entry.name} className="flex items-center justify-between gap-4 text-xs">
+            <span className="flex items-center gap-1.5 text-app-muted">
+              <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: entry.color }} aria-hidden="true" />
+              {entry.name}
             </span>
+            <span className="font-semibold tabular text-app-text">{formatCurrency(Number(entry.value ?? 0))}</span>
           </div>
         ))}
       </div>
@@ -70,137 +66,68 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   )
 }
 
-export function OverviewChart({ pagamentos, ano }: OverviewChartProps) {
-  const chartData = useMemo(() => {
-    const monthlyData: Record<number, ChartData> = {}
-
-    for (let i = 0; i < 12; i++) {
-      monthlyData[i] = {
-        mes: MESES[i],
-        recebido: 0,
-        pendente: 0,
-        atrasado: 0,
-      }
-    }
-
-    pagamentos.forEach(p => {
-      const date = new Date(p.mes_referencia + 'T12:00:00')
-      const monthIndex = date.getMonth()
-      const valor = Number(p.valor)
-
-      if (p.status === 'pago') {
-        monthlyData[monthIndex].recebido += valor
-      } else if (p.status === 'atrasado') {
-        monthlyData[monthIndex].atrasado += valor
-      } else {
-        monthlyData[monthIndex].pendente += valor
-      }
-    })
-
-    return Object.values(monthlyData)
-  }, [pagamentos])
-
-  const totalRecebido = chartData.reduce((acc, d) => acc + d.recebido, 0)
-  const totalPendente = chartData.reduce((acc, d) => acc + d.pendente, 0)
-  const totalAtrasado = chartData.reduce((acc, d) => acc + d.atrasado, 0)
+export function OverviewChart({ data, ano, valorPlano }: OverviewChartProps) {
+  const chartData = useMemo<ChartPoint[]>(() => data.map(item => ({
+    ...item,
+    mes: new Date(`${item.mesReferencia.slice(0, 7)}-15T12:00:00`).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''),
+    plano: valorPlano,
+  })), [data, valorPlano])
 
   return (
-    <div className="space-y-3">
-      {/* Faixa compacta com os 3 totais do ano */}
-      <div className="rounded-[var(--radius-app)] border border-app-line bg-app-surface px-4 py-3 sm:px-6">
-        <div className="grid grid-cols-3 divide-x divide-app-line text-center">
-          <div className="px-2">
-            <div className="flex items-center justify-center gap-1.5 mb-1">
-              <span className="w-2 h-2 rounded-full bg-app-accent" />
-              <span className="text-xs font-medium text-app-muted">Recebido</span>
-            </div>
-            <p className="text-base sm:text-lg font-bold text-app-accent tabular-nums">
-              {formatCurrency(totalRecebido)}
-            </p>
-          </div>
-
-          <div className="px-2">
-            <div className="flex items-center justify-center gap-1.5 mb-1">
-              <span className="w-2 h-2 rounded-full bg-app-warn" />
-              <span className="text-xs font-medium text-app-muted">Pendente</span>
-            </div>
-            <p className="text-base sm:text-lg font-bold text-app-warn tabular-nums">
-              {formatCurrency(totalPendente)}
-            </p>
-          </div>
-
-          <div className="px-2">
-            <div className="flex items-center justify-center gap-1.5 mb-1">
-              <span className="w-2 h-2 rounded-full bg-app-danger" />
-              <span className="text-xs font-medium text-app-muted">Atrasado</span>
-            </div>
-            <p className="text-base sm:text-lg font-bold text-app-danger tabular-nums">
-              {formatCurrency(totalAtrasado)}
-            </p>
-          </div>
-        </div>
+    <Card padding="md" className="h-full min-w-0">
+      <SectionHeader title={`Movimento mensal · ${ano}`} description="Previsto, recebido e custo do plano" />
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-app-muted" aria-label="Legenda do gráfico">
+        <Legend color="bg-app-elevated" label="Previsto" />
+        <Legend color="bg-app-accent" label="Arrecadado" />
+        <Legend color="bg-app-warn" label="Valor do plano" line />
       </div>
 
-      {/* Gráfico de barras */}
-      <div className="rounded-[var(--radius-app)] border border-app-line bg-app-surface p-4 sm:p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-app-text">
-            Faturamento Mensal — {ano}
-          </h3>
-          <span className="text-xs text-app-subtle">
-            Valores consolidados por mês
-          </span>
-        </div>
-        <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={chartData} barGap={2} barCategoryGap="16%">
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="rgba(255, 255, 255, 0.05)"
-              vertical={false}
-            />
+      <div className="mt-4 h-[260px] w-full" role="img" aria-label={`Gráfico mensal de previsto, arrecadado e valor do plano em ${ano}`}>
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={chartData} margin={{ top: 8, right: 4, bottom: 0, left: 0 }} barGap={3} barCategoryGap="24%">
+            <CartesianGrid stroke="var(--color-app-line)" strokeDasharray="3 4" vertical={false} />
             <XAxis
               dataKey="mes"
-              tick={{ fill: '#8e8e93', fontSize: 12 }}
-              axisLine={{ stroke: 'rgba(255, 255, 255, 0.08)' }}
+              axisLine={{ stroke: 'var(--color-app-line)' }}
               tickLine={false}
+              tick={{ fill: 'var(--color-app-subtle)', fontSize: 11 }}
+              interval={0}
+              minTickGap={0}
             />
             <YAxis
-              tick={{ fill: '#8e8e93', fontSize: 12 }}
               axisLine={false}
               tickLine={false}
-              tickFormatter={(value) => `R$ ${value}`}
+              width={54}
+              tick={{ fill: 'var(--color-app-subtle)', fontSize: 10 }}
+              tickFormatter={value => moedaCompacta.format(Number(value))}
             />
             <Tooltip
               content={<CustomTooltip />}
-              cursor={{ fill: 'rgba(255, 255, 255, 0.03)' }}
+              cursor={{ fill: 'var(--color-app-line)' }}
             />
-            <Legend
-              wrapperStyle={{ fontSize: '12px', paddingTop: '12px' }}
-              formatter={(value) => (
-                <span className="text-xs text-app-muted">{value}</span>
-              )}
+            <Bar dataKey="previsto" name="Previsto" fill="var(--color-app-elevated)" radius={[4, 4, 0, 0]} maxBarSize={24} />
+            <Bar dataKey="arrecadado" name="Arrecadado" fill="var(--color-app-accent)" radius={[4, 4, 0, 0]} maxBarSize={24} />
+            <Line
+              dataKey="plano"
+              name="Valor do plano"
+              type="monotone"
+              stroke="var(--color-app-warn)"
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 4, fill: 'var(--color-app-warn)', stroke: 'var(--color-app-surface)' }}
             />
-            <Bar
-              dataKey="recebido"
-              name="Recebido"
-              fill="#1DB954"
-              radius={[4, 4, 0, 0]}
-            />
-            <Bar
-              dataKey="pendente"
-              name="Pendente"
-              fill="#ff9f0a"
-              radius={[4, 4, 0, 0]}
-            />
-            <Bar
-              dataKey="atrasado"
-              name="Atrasado"
-              fill="#ff453a"
-              radius={[4, 4, 0, 0]}
-            />
-          </BarChart>
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </Card>
+  )
+}
+
+function Legend({ color, label, line = false }: { color: string; label: string; line?: boolean }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span aria-hidden="true" className={`h-2 w-2 rounded-full ${color} ${line ? 'relative h-0.5 w-3 rounded-none after:absolute after:-right-0.5 after:-top-1 after:h-2 after:w-2 after:rounded-full after:bg-app-warn' : ''}`} />
+      {label}
+    </span>
   )
 }
