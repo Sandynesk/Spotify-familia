@@ -2,6 +2,14 @@
 
 All exports are available from `@/components/ui` and keep their implementation modules importable by name.
 
+## Arquivos entregues
+
+- `app/globals.css` — tokens e utilitários v2, foco e motion reduzido, mantendo os tokens `sp-*`.
+- `app/(dashboard)/layout.tsx` — sessão, métricas do plano e casca do app.
+- `app/(dashboard)/kit/page.tsx` and `KitShowcase.tsx` — vitrine interativa do design system.
+- `components/layout/Sidebar.tsx`, `BottomNav.tsx`, and `Header.tsx` — navegação desktop/mobile e adaptador legado; `FAB.tsx` foi removido.
+- `components/ui/**` — componentes, primitives de motion/haptics, barrel export e este contrato de API.
+
 | Component | Public API |
 |---|---|
 | `Button` | `variant`, `size`, `loading`, `icon`, native button props, and children. |
@@ -44,6 +52,7 @@ All exports are available from `@/components/ui` and keep their implementation m
 - `npx tsc --noEmit`: passed with no output.
 - `npx eslint app/globals.css components/ui components/layout "app/(dashboard)/layout.tsx" "app/(dashboard)/kit"`: passed with no errors; ESLint reports that CSS has no matching configuration and ignores that file.
 - `npm run build`: passed; Next.js reports `Compiled successfully` and includes `/kit` as a dynamic route.
+- Smoke at port 3201: `/` and `/login` returned 200; `/kit` returned 307 to `/login`, as the layout requires a session.
 
 ## Pendências para o CEO
 
