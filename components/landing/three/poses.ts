@@ -15,6 +15,7 @@ const TWO_PI = Math.PI * 2
 
 /**
  * Poses de cada beat da narrativa 3D (espelha a tabela de docs/landing/contratos/three.md).
+ * Closes de paid-1/paid-2 ajustados para z 0.45 e 0.60 para nunca estourar a viewport.
  * O giro completo entre 'hero' e 'slots-1' mostra a traseira com as três câmeras e volta de frente.
  */
 export const BEAT_POSES: Readonly<Record<Beat, PhonePose>> = {
@@ -22,9 +23,9 @@ export const BEAT_POSES: Readonly<Record<Beat, PhonePose>> = {
   'slots-1': { x: 0.95, y: 0, z: 0, rotX: 0.02, rotY: TWO_PI - 0.12, rotZ: 0 },
   'slots-2': { x: 0.95, y: 0, z: 0, rotX: 0.02, rotY: TWO_PI + 0.18, rotZ: -0.02 },
   'slots-3': { x: 0.95, y: 0, z: 0, rotX: 0, rotY: TWO_PI, rotZ: 0 },
-  'paid-1': { x: 0.7, y: -0.05, z: 1.1, rotX: 0.1, rotY: TWO_PI + 0.28, rotZ: 0 },
-  'paid-2': { x: 0.7, y: -0.05, z: 1.3, rotX: 0.08, rotY: TWO_PI + 0.12, rotZ: 0 },
-  'paid-3': { x: 0.95, y: 0, z: 0.4, rotX: 0.04, rotY: TWO_PI - 0.3, rotZ: 0.02 },
+  'paid-1': { x: 0.7, y: -0.04, z: 0.45, rotX: 0.08, rotY: TWO_PI + 0.28, rotZ: 0 },
+  'paid-2': { x: 0.7, y: -0.04, z: 0.6, rotX: 0.06, rotY: TWO_PI + 0.12, rotZ: 0 },
+  'paid-3': { x: 0.95, y: 0, z: 0.15, rotX: 0.04, rotY: TWO_PI - 0.3, rotZ: 0.02 },
 }
 
 const STEPS = BEAT_ORDER.length - 1
@@ -62,8 +63,8 @@ export function computeTargetPose(
   if (isMobile) {
     // Retrato/mobile: centralizado em X, posicionado no terço superior para dar espaço ao texto
     target.x = 0
-    target.y = viewportHeight * 0.16 + rawY * 0.4
-    target.z = rawZ * 0.5
+    target.y = viewportHeight * 0.15 + rawY * 0.35
+    target.z = rawZ * 0.4
     target.rotX = rawRotX
     target.rotY = rawRotY
     target.rotZ = rawRotZ
