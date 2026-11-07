@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getConfiguracoes } from '@/lib/actions/configuracoes'
 import { garantirPagamentos } from '@/lib/utils/payments'
 import { getCurrentMonthISO, getEffectiveStatus } from '@/lib/utils/date'
 import { calcularPontualidade } from '@/lib/domain/pontualidade'
@@ -26,7 +27,7 @@ export async function getInsightsData(ano: number = new Date().getFullYear()) {
     : { data: [], error: null }
   if (pagamentosError) return { error: pagamentosError.message }
   const pagamentosLista = ((pagamentos ?? []) as Pagamento[]).map(p => ({ ...p, status: getEffectiveStatus(p.mes_referencia, p.status) as Pagamento['status'] }))
-  const { data: configuracoes } = await supabase.from('configuracoes').select('valor_plano').eq('user_id', user.id).maybeSingle()
+  const configuracoes = await getConfiguracoes()
   const valorPlano = Number(configuracoes?.valor_plano ?? 0)
   const mesAtual = getCurrentMonthISO()
   const doMesAtual = pagamentosLista.filter(p => p.mes_referencia === mesAtual)
@@ -55,7 +56,7 @@ export async function getRetrospectivaData(ano: number) {
     ? await supabase.from('pagamentos').select('*').in('membro_id', ids).gte('mes_referencia', `${ano}-01-01`).lt('mes_referencia', `${ano + 1}-01-01`)
     : { data: [], error: null }
   if (pagamentosError) return { error: pagamentosError.message }
-  const { data: configuracoes } = await supabase.from('configuracoes').select('valor_plano').eq('user_id', user.id).maybeSingle()
+  const configuracoes = await getConfiguracoes()
   return calcularRetrospectiva({ ano, membros: membrosLista, pagamentos: (pagamentos ?? []) as Pagamento[], valorPlano: Number(configuracoes?.valor_plano ?? 0) })
 }
 

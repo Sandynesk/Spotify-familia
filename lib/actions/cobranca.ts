@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getConfiguracoes } from '@/lib/actions/configuracoes'
 import { garantirPagamentos } from '@/lib/utils/payments'
 import { calcularDevedores } from '@/lib/utils/devedores'
 import { getCurrentMonthISO } from '@/lib/utils/date'
@@ -39,8 +40,7 @@ export async function getCobrancaData(): Promise<{ cobrancas: ItemCobranca[] } |
     ? await supabase.from('pagamentos').select('*').in('membro_id', ids).lte('mes_referencia', getCurrentMonthISO())
     : { data: [], error: null }
   if (pagamentosError) return { error: pagamentosError.message }
-  const { data: configuracoes, error: configError } = await supabase.from('configuracoes').select('chave_pix').eq('user_id', user.id).maybeSingle()
-  if (configError) return { error: configError.message }
+  const configuracoes = await getConfiguracoes()
   const chavePix = configuracoes?.chave_pix ?? null
   const devedores = calcularDevedores(membrosLista, (pagamentos ?? []) as Pagamento[], getCurrentMonthISO())
   const cobrancas: ItemCobranca[] = []

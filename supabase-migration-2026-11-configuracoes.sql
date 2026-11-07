@@ -1,9 +1,16 @@
 -- ═══════════════════════════════════════════════════════
 -- SpotiFamília — Migração: configurações do usuário
--- Rode UMA vez no SQL Editor do Supabase.
--- Guarda quanto você paga ao Spotify (para comparar com o arrecadado)
--- e a sua chave PIX (usada no relatório de cobrança do grupo).
+-- Rode UMA vez no SQL Editor do Supabase:
+-- https://supabase.com/dashboard/project/zlobxenwxnaalzfloxkx/sql/new
 -- ═══════════════════════════════════════════════════════
+
+CREATE OR REPLACE FUNCTION update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE TABLE IF NOT EXISTS configuracoes (
   user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
