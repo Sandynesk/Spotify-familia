@@ -1,73 +1,49 @@
 export const dynamic = 'force-dynamic'
 
-import { Suspense } from 'react'
-import { Header } from '@/components/layout/Header'
-import { DashboardMonthHeader } from '@/components/dashboard/DashboardMonthHeader'
-import { DevedoresCard } from '@/components/dashboard/DevedoresCard'
-import { RelatorioButton } from '@/components/relatorio/RelatorioButton'
-import { DashboardCustoCard } from '@/components/dashboard/DashboardCustoCard'
-import { MemberList } from '@/components/dashboard/MemberList'
-import { DashboardLocalSkeleton } from '@/components/dashboard/DashboardSkeleton'
-import { getDashboardData } from '@/lib/actions/pagamentos'
-import { getCurrentMonthISO } from '@/lib/utils/date'
+import Link from 'next/link'
+import { AlertCircle, RotateCcw } from 'lucide-react'
+import { getHojeData } from '@/lib/actions/hoje'
+import { HojeDashboard } from '@/components/hoje/HojeDashboard'
 
-async function DashboardContent() {
-  const data = await getDashboardData()
-
-  if (!data) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <p className="text-sm text-app-muted">Erro ao carregar dados. Recarregue a página.</p>
-      </div>
-    )
-  }
-
-  const { membros, pagamentosMes, summary, devedores, custo } = data
-  const mesAtual = getCurrentMonthISO()
-
+function DashboardLoadError() {
   return (
-    <div className="space-y-6">
-      {/* 1. Cabeçalho do mês com resumo e barra fina */}
-      <DashboardMonthHeader
-        mes={mesAtual}
-        pago={summary.totalPago}
-        total={summary.totalAReceber}
-        progresso={summary.progresso}
-      />
-
-      {/* 2. Card "Quem está devendo" */}
-      <DevedoresCard
-        devedores={devedores}
-        pagamentosMes={pagamentosMes}
-        mesAtual={mesAtual}
-      />
-
-      {/* 3. Botão do relatório logo abaixo dos devedores */}
-      <div className="flex w-full [&>button]:flex [&>button]:min-h-[44px] [&>button]:w-full [&>button]:items-center [&>button]:justify-center">
-        <RelatorioButton variant="full" />
-      </div>
-
-      {/* 4. Card de custo */}
-      <DashboardCustoCard custo={custo} />
-
-      {/* 5. Lista de membros do mês (mais discreta) */}
-      <MemberList
-        membros={membros}
-        pagamentosMes={pagamentosMes}
-      />
+    <div className="mx-auto max-w-xl rounded-app border border-app-line bg-app-surface px-6 py-10 text-center">
+      <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-app-danger/10 text-app-danger">
+        <AlertCircle aria-hidden className="h-6 w-6" />
+      </span>
+      <h2 className="text-lg font-semibold text-app-text">Não foi possível carregar o Hoje</h2>
+      <p className="mx-auto mt-2 max-w-sm text-sm text-app-muted">
+        Tente novamente para atualizar os pagamentos do mês.
+      </p>
+      <Link
+        href="/dashboard"
+        className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-app-elevated px-5 text-sm font-medium text-app-text transition-colors hover:bg-app-raised"
+      >
+        <RotateCcw aria-hidden className="h-4 w-4" />
+        Tentar de novo
+      </Link>
     </div>
   )
 }
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const data = await getHojeData()
+  if (!data) return <DashboardLoadError />
+
   return (
-    <>
-      <Header />
-      <div className="mx-auto max-w-3xl px-4 py-5 lg:px-8 lg:py-8">
-        <Suspense fallback={<DashboardLocalSkeleton />}>
-          <DashboardContent />
-        </Suspense>
-      </div>
-    </>
+    <HojeDashboard
+      key={`${data.monthISO}-${data.pagamentosMes.map((payment) => `${payment.id}:${payment.status}:${payment.data_pagamento ?? ''}`).join('|')}`}
+      membros={data.membros}
+      pagamentosMes={data.pagamentosMes}
+      summary={data.summary}
+      devedores={data.devedores}
+      custo={data.custo}
+      saldo={data.balance}
+      agenda={data.agenda}
+      monthISO={data.monthISO}
+      monthTitle={data.monthTitle}
+      todayISO={data.todayISO}
+      greeting={data.greeting}
+    />
   )
 }
