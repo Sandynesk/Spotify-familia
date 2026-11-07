@@ -1,6 +1,7 @@
 import React from 'react'
 
-interface SpotifyLogoProps {
+/** Legacy Spotify mark API retained for login and cadastro compatibility. */
+export interface SpotifyLogoProps {
   className?: string
   size?: number | string
   color?: string

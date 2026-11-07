@@ -1,63 +1,54 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   SPOTIFY DESIGN TOKENS — Tailwind v4 Theme
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* Landing/auth palette stays available beside the internal app tokens. */
 @theme inline {
-  /* Colors */
-  --color-sp-bg:        #121212;
-  --color-sp-card:      #181818;
-  --color-sp-hover:     #282828;
-  --color-sp-input:     #3E3E3E;
-  --color-sp-green:     #1DB954;
-  --color-sp-green-h:   #1ed760;
-  --color-sp-white:     #FFFFFF;
-  --color-sp-secondary: #B3B3B3;
-  --color-sp-muted:     #535353;
-  --color-sp-danger:    #E22134;
-  --color-sp-warning:   #F59B23;
+  --color-sp-bg: #121212;
+  --color-sp-card: #181818;
+  --color-sp-hover: #282828;
+  --color-sp-input: #3e3e3e;
+  --color-sp-green: #1db954;
+  --color-sp-green-h: #1ed760;
+  --color-sp-white: #ffffff;
+  --color-sp-secondary: #b3b3b3;
+  --color-sp-muted: #535353;
+  --color-sp-danger: #e22134;
+  --color-sp-warning: #f59b23;
 
-  /* Typography */
   --font-sans: "Outfit", sans-serif;
+  --font-app: var(--font-geist), system-ui, -apple-system, sans-serif;
 
-  /* Border radius */
   --radius-card: 8px;
   --radius-pill: 500px;
   --radius-input: 4px;
+  --radius-app: 24px;
+  --radius-app-sm: 14px;
+  --radius-app-xs: 10px;
 
-  /* Animation */
   --ease-sp: cubic-bezier(0.3, 0, 0, 1);
-
-  /* ── App interno (dashboard, membros, visão geral, histórico, configurações) ──
-     Linguagem "keynote" alinhada à nova landing: preto puro, verde Spotify como
-     único destaque, tipografia Geist. Use SEMPRE estes tokens nas telas internas
-     (bg-app-bg, text-app-muted, border-app-line, font-app...), nunca hex soltos. */
-  --color-app-bg:           #000000;
-  --color-app-surface:      #111113;
-  --color-app-elevated:     #1c1c1f;
-  --color-app-line:         rgb(255 255 255 / 0.08);
-  --color-app-text:         #f5f5f7;
-  --color-app-muted:        #a1a1a6;
-  --color-app-subtle:       #8e8e93;
-  --color-app-accent:       #1DB954;
-  --color-app-accent-hover: #1ed760;
-  --color-app-warn:         #ff9f0a;
-  --color-app-danger:       #ff453a;
-
-  --font-app: var(--font-geist), system-ui, -apple-system, sans-serif;
-
-  --radius-app:    20px;
-  --radius-app-sm: 12px;
-
   --ease-app: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-app-float: 0 10px 40px -10px rgb(0 0 0 / 0.8), 0 0 0 1px rgb(255 255 255 / 0.06);
+
+  --color-app-bg: #000000;
+  --color-app-surface: #0e0e10;
+  --color-app-elevated: #1a1a1d;
+  --color-app-raised: #242428;
+  --color-app-line: rgb(255 255 255 / 0.08);
+  --color-app-line-strong: rgb(255 255 255 / 0.14);
+  --color-app-text: #f5f5f7;
+  --color-app-muted: #a1a1a6;
+  --color-app-subtle: #8e8e93;
+  --color-app-accent: #48e5b2;
+  --color-app-accent-hover: #6cf0c4;
+  --color-app-accent-ink: #04261b;
+  --color-app-warn: #ffb340;
+  --color-app-danger: #ff5a4e;
+  --color-app-info: #64a8ff;
 }
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   BASE STYLES
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -67,119 +58,152 @@ html {
 }
 
 body {
+  min-height: 100dvh;
   background-color: #121212;
-  color: #FFFFFF;
+  color: #ffffff;
   font-family: "Outfit", sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   SCROLLBAR CUSTOM
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #535353; border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: #B3B3B3; }
+:focus-visible {
+  outline: 2px solid #48e5b2;
+  outline-offset: 2px;
+}
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   SHIMMER SKELETON ANIMATION
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.app-glass {
+  border: 1px solid var(--color-app-line);
+  background: rgb(14 14 16 / 0.72);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+}
+
+.app-aurora {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: var(--color-app-surface);
+  background-image:
+    radial-gradient(ellipse at 16% 0%, rgb(72 229 178 / 0.17), transparent 52%),
+    radial-gradient(ellipse at 100% 10%, rgb(100 168 255 / 0.11), transparent 48%),
+    radial-gradient(ellipse at 72% 100%, rgb(72 229 178 / 0.08), transparent 44%);
+  background-size: 150% 150%;
+  animation: aurora-drift 20s ease-in-out infinite alternate;
+}
+
+.app-noise {
+  position: relative;
+  isolation: isolate;
+}
+
+.app-noise::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
+}
+
+.app-noise > * {
+  position: relative;
+  z-index: 2;
+}
+
+.app-noise > canvas {
+  position: absolute;
+  z-index: 20;
+}
+
+@keyframes aurora-drift {
+  from { background-position: 0% 0%; }
+  to { background-position: 100% 100%; }
+}
+
 @keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position:  200% 0; }
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    #1c1c1f 25%,
-    #26262a 50%,
-    #1c1c1f 75%
-  );
+  border-radius: 4px;
+  background: linear-gradient(90deg, #1a1a1d 25%, #26262a 50%, #1a1a1d 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-  border-radius: 4px;
 }
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   SWIPE ACTIONS (mobile)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-.swipe-container {
-  overflow: hidden;
-  position: relative;
-}
-
-.swipe-item {
-  transition: transform 200ms ease;
-  touch-action: pan-y;
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   PROGRESS BAR ANIMATION
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 @keyframes progress-fill {
   from { width: 0%; }
-  to   { width: var(--progress-width); }
+  to { width: var(--progress-width); }
 }
 
 .progress-bar-fill {
   animation: progress-fill 800ms var(--ease-sp) forwards;
 }
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   TOAST ANIMATIONS
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 @keyframes toast-in {
-  from { transform: translateY(100%); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 @keyframes toast-out {
-  from { transform: translateY(0);    opacity: 1; }
-  to   { transform: translateY(100%); opacity: 0; }
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(12px); opacity: 0; }
 }
 
-.toast-enter { animation: toast-in  200ms ease forwards; }
-.toast-exit  { animation: toast-out 200ms ease forwards; }
+.toast-enter { animation: toast-in 200ms var(--ease-app) both; }
+.toast-exit { animation: toast-out 160ms ease both; }
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   FAB PULSE
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-@keyframes fab-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(29, 185, 84, 0.4); }
-  50%       { box-shadow: 0 0 0 12px rgba(29, 185, 84, 0);  }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { border-radius: 999px; background: #535353; }
+::-webkit-scrollbar-thumb:hover { background: #b3b3b3; }
+
+dialog.app-sheet {
+  color: var(--color-app-text);
+  background: rgb(14 14 16 / 0.94);
+  border: 1px solid var(--color-app-line-strong);
+  box-shadow: var(--shadow-app-float);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  backdrop-filter: blur(28px) saturate(160%);
 }
 
-.fab-pulse { animation: fab-pulse 2s infinite; }
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   FOCUS VISIBLE GLOBAL
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-:focus-visible {
-  outline: 2px solid #1DB954;
-  outline-offset: 2px;
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   SHEET (components/ui/Sheet.tsx — <dialog> nativo)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 dialog.app-sheet::backdrop {
-  background: rgb(0 0 0 / 0.6);
-  backdrop-filter: blur(6px);
+  background: rgb(0 0 0 / 0.66);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 
 @keyframes sheet-up {
-  from { transform: translateY(24px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
-dialog.app-sheet[open] { animation: sheet-up 220ms var(--ease-app); }
+dialog.app-sheet[open] {
+  animation: sheet-up 220ms var(--ease-app);
+}
 
 @media (prefers-reduced-motion: reduce) {
-  dialog.app-sheet[open] { animation: none; }
-  .skeleton { animation: none; }
+  html,
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .app-aurora,
+  .skeleton,
+  .toast-enter,
+  .toast-exit,
+  dialog.app-sheet[open],
+  .progress-bar-fill { animation: none; }
 }

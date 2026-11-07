@@ -1,84 +1,63 @@
 import React from 'react'
+import { LoaderCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
-type ButtonSize = 'sm' | 'md' | 'lg'
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'glass'
+export type ButtonSize = 'sm' | 'md' | 'lg'
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
   size?: ButtonSize
   loading?: boolean
   icon?: React.ReactNode
-  children: React.ReactNode
+  children?: React.ReactNode
 }
 
-const variantStyles: Record<ButtonVariant, string> = {
-  primary: `
-    bg-gradient-to-b from-[#1ed760] to-[#1aa34a] 
-    text-black font-black tracking-tight
-    shadow-[0_4px_15px_rgba(29,185,84,0.3)]
-    hover:from-[#22e06b] hover:to-[#1db954]
-    hover:shadow-[0_8px_25px_rgba(29,185,84,0.45)]
-    hover:-translate-y-0.5
-  `,
-  secondary: `
-    bg-[#282828] text-white font-bold
-    border border-white/10
-    hover:bg-[#333333] hover:border-white/20
-    shadow-lg
-  `,
-  ghost: `
-    bg-transparent text-[#B3B3B3] font-bold
-    hover:text-white hover:bg-white/10
-  `,
-  danger: `
-    bg-transparent text-[#ff4d5e] border border-[#ff4d5e]/30 font-bold
-    hover:bg-[#ff4d5e] hover:text-white
-    shadow-[0_0_15px_rgba(255,77,94,0.1)]
-  `,
+const variants: Record<ButtonVariant, string> = {
+  primary: 'bg-app-accent text-app-accent-ink hover:bg-app-accent-hover border border-transparent',
+  secondary: 'bg-app-elevated text-app-text hover:bg-app-raised border border-app-line',
+  ghost: 'bg-transparent text-app-muted hover:bg-app-elevated hover:text-app-text border border-transparent',
+  danger: 'bg-app-danger/12 text-app-danger hover:bg-app-danger hover:text-app-bg border border-app-danger/20',
+  glass: 'app-glass text-app-text hover:bg-white/10 border border-app-line-strong',
 }
 
-const sizeStyles: Record<ButtonSize, string> = {
-  sm: 'px-4 py-2 text-xs md:px-5 md:text-sm',
-  md: 'px-6 py-2.5 text-sm md:px-7 md:py-3 md:text-base',
-  lg: 'px-8 py-3.5 text-base md:px-10 md:py-4 md:text-lg',
+const sizes: Record<ButtonSize, string> = {
+  sm: 'min-h-9 px-4 text-sm',
+  md: 'min-h-11 px-5 text-sm',
+  lg: 'min-h-[52px] px-6 text-base',
 }
 
+/** Pill action button with consistent loading, focus, and press states. */
 export function Button({
   variant = 'primary',
   size = 'md',
   loading = false,
   icon,
   disabled,
-  className = '',
+  className,
   children,
   ...props
 }: ButtonProps) {
   return (
     <button
       disabled={disabled || loading}
-      className={`
-        group inline-flex items-center justify-center gap-2
-        rounded-full border-none cursor-pointer
-        transition-all duration-300 ease-out
-        active:scale-[0.96] active:translate-y-0
-        disabled:opacity-50 disabled:cursor-not-allowed
-        ${variantStyles[variant]}
-        ${sizeStyles[size]}
-        ${className}
-      `}
+      aria-busy={loading || undefined}
+      className={cn(
+        'inline-flex shrink-0 items-center justify-center gap-2 rounded-full font-semibold tracking-[-0.01em] transition-[background-color,color,transform,opacity] duration-200 ease-app active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-45',
+        variants[variant],
+        sizes[size],
+        className,
+      )}
       {...props}
     >
       {loading ? (
-        <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
-      ) : icon && (
-        <span className="transition-transform duration-700 ease-in-out md:group-hover:rotate-[360deg]">
+        <LoaderCircle aria-hidden className="h-[18px] w-[18px] animate-spin" />
+      ) : icon ? (
+        <span aria-hidden className="flex shrink-0 items-center [&>svg]:h-5 [&>svg]:w-5 [&>svg]:stroke-[1.75]">
           {icon}
         </span>
-      )}
-      <span>{children}</span>
+      ) : null}
+      {children != null && <span>{children}</span>}
     </button>
   )
 }
