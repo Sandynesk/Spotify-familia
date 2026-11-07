@@ -35,7 +35,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <Sidebar occupiedSlots={occupiedSlots} monthlyValue={configuracoes?.valor_plano ?? null} demo={demo} />
 
           {/* Main content */}
-          <main className="flex-1 min-w-0 pb-32 lg:pb-12">
+          <main className="flex-1 min-w-0 pb-[calc(7.5rem+env(safe-area-inset-bottom))] lg:pb-12">
             <div className="relative mx-auto w-full max-w-5xl px-5 sm:px-8">
               <div className="absolute right-5 top-[max(env(safe-area-inset-top),12px)] z-40 lg:hidden sm:right-8">
                 <MobileCommandTrigger />

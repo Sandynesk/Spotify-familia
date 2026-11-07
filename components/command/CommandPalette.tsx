@@ -292,7 +292,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
         />
       </div>
 
-      <div className="mt-4 max-h-[min(54dvh,480px)] space-y-5 overflow-y-auto pr-1" aria-live="polite">
+      <div className="mt-4 max-h-[min(54dvh,480px)] space-y-5 overflow-y-auto scrollbar-none pr-1" aria-live="polite">
         {groups.map((group) => (
           <section key={group.label} aria-label={group.label}>
             <h3 className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-app-subtle">{group.label}</h3>

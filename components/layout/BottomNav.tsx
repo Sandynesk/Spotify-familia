@@ -23,8 +23,8 @@ export function BottomNav() {
 
   return (
     <nav
-      className="app-glass fixed bottom-[max(12px,env(safe-area-inset-bottom))] left-3 right-3 z-40 rounded-[28px] px-1.5 pb-1.5 pt-1.5 shadow-app-float lg:hidden"
-      aria-label="Navegação principal"
+      className="app-glass fixed bottom-[max(12px,env(safe-area-inset-bottom))] left-3 right-3 z-40 rounded-[28px] px-1.5 pb-1.5 pt-1.5 shadow-app-float lg:hidden select-none"
+      aria-label="Navegação móvel"
     >
       <div className="grid grid-cols-5">
         {tabs.map(({ href, label, icon: Icon }) => {

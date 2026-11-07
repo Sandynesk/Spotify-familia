@@ -211,6 +211,15 @@ body {
 
 
 
+/* Prevent iOS Safari from forcibly zooming in on inputs < 16px */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 dialog.app-sheet {
   color: var(--color-app-text);
   background: rgb(14 14 16 / 0.94);

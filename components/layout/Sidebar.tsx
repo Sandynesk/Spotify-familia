@@ -101,7 +101,7 @@ export function Sidebar({ occupiedSlots, monthlyValue, demo = false }: SidebarPr
 
       <nav
         className="min-h-0 flex-1 space-y-3.5 overflow-y-auto scrollbar-none px-1 select-none"
-        aria-label="Navegação principal"
+        aria-label="Navegação lateral"
       >
         {groups.map((group) => (
           <section key={group.label}>

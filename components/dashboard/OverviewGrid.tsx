@@ -175,7 +175,8 @@ export function OverviewGrid({ membros, pagamentos: initialPagamentos, ano }: Ov
         <Legend status="outside-plan" />
       </div>
 
-      <div className="mt-4 max-w-full overflow-x-auto scrollbar-thin rounded-app-sm border border-app-line overscroll-x-contain">
+      <div className="relative mt-4">
+        <div className="max-w-full overflow-x-auto scrollbar-thin rounded-app-sm border border-app-line overscroll-x-contain">
         <table className="w-full min-w-[820px] border-separate border-spacing-0 text-left select-none">
           <caption className="sr-only">Pagamentos de {ano} por membro e mês</caption>
           <thead>
@@ -225,7 +226,9 @@ export function OverviewGrid({ membros, pagamentos: initialPagamentos, ano }: Ov
             ))}
           </tbody>
         </table>
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-app-surface/90 to-transparent sm:hidden" aria-hidden="true" />
       </div>
+    </div>
 
       <Sheet
         open={selected !== null}

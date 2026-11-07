@@ -29,7 +29,7 @@ export function Sheet({ open, onClose, title, description, children, className =
   return (
     <dialog
       ref={ref}
-      className={`app-sheet fixed inset-x-0 bottom-0 mb-0 mt-auto max-h-[min(90dvh,760px)] w-full max-w-none overflow-y-auto rounded-t-app border p-0 text-app-text sm:inset-0 sm:m-auto sm:max-w-lg sm:rounded-app ${className}`}
+      className={`app-sheet fixed inset-x-0 bottom-0 mb-0 mt-auto max-h-[min(90dvh,760px)] w-full max-w-none overflow-y-auto scrollbar-none rounded-t-[28px] border p-0 text-app-text sm:inset-0 sm:m-auto sm:max-w-lg sm:rounded-app ${className}`}
       aria-labelledby={titleId}
       aria-describedby={description ? descriptionId : undefined}
       onCancel={(event) => {

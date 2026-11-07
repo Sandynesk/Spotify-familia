@@ -267,17 +267,17 @@ export function HojeDashboard({
         actions={<HeaderActions />}
       />
 
-      <div className="grid gap-5 lg:grid-cols-12">
-        <div className="space-y-5 lg:col-span-8">
+      <div className="grid grid-cols-1 min-w-0 gap-5 lg:grid-cols-12">
+        <div className="min-w-0 space-y-5 lg:col-span-8">
           <Card variant="hero" padding="lg" className="overflow-hidden">
             <MonthCelebration monthISO={monthISO} complete={isComplete} />
-            <div className="relative z-10 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:gap-5">
-              <div className="min-w-0">
+            <div className="relative z-10 flex items-center justify-between gap-3 sm:gap-5">
+              <div className="min-w-0 flex-1">
                 <p className="mb-2 text-xs font-medium uppercase tracking-[0.12em] text-app-subtle">Arrecadação do mês</p>
-                <p className="truncate text-[clamp(2rem,9vw,3.5rem)] font-semibold leading-none tracking-[-0.04em] tabular text-app-text">
+                <p className="truncate text-[clamp(1.75rem,8vw,3.5rem)] font-semibold leading-none tracking-[-0.04em] tabular text-app-text">
                   <NumberTicker value={totalPaid} decimals={2} format={formatCurrency} />
                 </p>
-                <p className="mt-2 text-sm text-app-muted">
+                <p className="mt-2 text-xs sm:text-sm text-app-muted">
                   recebidos de <span className="font-medium tabular text-app-text">{formatCurrency(summary.totalAReceber)}</span>
                 </p>
               </div>
@@ -285,7 +285,8 @@ export function HojeDashboard({
                 occupied={Math.min(membros.length + 1, 6)}
                 paid={Math.min(paid.length + 1, membros.length + 1, 6)}
                 total={6}
-                size={72}
+                size={62}
+                className="shrink-0"
                 label={`${Math.min(membros.length + 1, 6)} de 6 vagas ocupadas, ${Math.min(paid.length + 1, membros.length + 1, 6)} pagas neste mês`}
               />
             </div>
@@ -317,7 +318,7 @@ export function HojeDashboard({
 
           <QuickActions selectionMode={selectionMode} onToggleSelection={toggleSelectionMode} />
 
-          <div className="grid gap-5 lg:grid-cols-2">
+          <div className="grid grid-cols-1 min-w-0 gap-5 lg:grid-cols-2">
             <section>
               <SectionHeader
                 title="Pendentes deste mês"
@@ -386,7 +387,7 @@ export function HojeDashboard({
           <AtrasosCard devedores={devedores} />
         </div>
 
-        <aside className="space-y-5 lg:col-span-4">
+        <aside className="min-w-0 space-y-5 lg:col-span-4">
           <UpcomingCard agenda={agenda} todayISO={todayISO} />
           <SaldoCard custo={custo} saldo={saldo} />
         </aside>
@@ -423,7 +424,7 @@ function HeaderActions() {
       <Link
         href="/membros"
         aria-label="Buscar membros"
-        className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-app-line bg-app-elevated text-app-muted transition-colors hover:bg-app-raised hover:text-app-text"
+        className="hidden sm:inline-flex h-11 w-11 items-center justify-center rounded-full border border-app-line bg-app-elevated text-app-muted transition-colors hover:bg-app-raised hover:text-app-text"
       >
         <Search aria-hidden className="h-5 w-5" />
       </Link>
@@ -446,7 +447,7 @@ function QuickActions({ selectionMode, onToggleSelection }: { selectionMode: boo
   ]
 
   return (
-    <nav aria-label="Ações rápidas" className="-mx-5 flex max-w-[calc(100%+2.5rem)] gap-2 overflow-x-auto scrollbar-none px-5 pb-1 select-none sm:-mx-8 sm:max-w-[calc(100%+4rem)] sm:px-8 lg:mx-0 lg:max-w-full lg:px-0">
+    <nav aria-label="Ações rápidas" className="-mx-5 flex min-w-0 gap-2 overflow-x-auto scrollbar-none px-5 pb-1 select-none sm:-mx-8 sm:px-8 lg:mx-0 lg:px-0">
       {pills.slice(0, 1).map((pill) => (
         <Link key={pill.href} href={pill.href} className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-app-line bg-app-surface px-4 text-sm font-medium text-app-text transition-colors hover:bg-app-elevated">
           <span className="text-app-accent [&>svg]:h-4 [&>svg]:w-4">{pill.icon}</span>
