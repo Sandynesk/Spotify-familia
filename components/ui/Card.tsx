@@ -13,7 +13,7 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 export function Card({ variant = 'default', padding = 'md', className, children, ...props }: CardProps) {
   const variants: Record<CardVariant, string> = {
     default: 'border border-app-line bg-app-surface',
-    interactive: 'cursor-pointer border border-app-line bg-app-surface transition-[background-color,border-color,transform] duration-200 hover:border-app-line-strong hover:bg-app-elevated active:scale-[0.99]',
+    interactive: 'cursor-pointer border border-app-line bg-app-surface transition-[background-color,border-color,transform,box-shadow] duration-200 hover:border-app-line-strong hover:bg-app-elevated hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.6)] active:scale-[0.99]',
     hero: 'app-aurora app-noise border border-white/[0.08]',
   }
   const paddings: Record<CardPadding, string> = {

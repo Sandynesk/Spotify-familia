@@ -46,10 +46,10 @@ export function CobrancaCartao({
   return (
     <div className="relative min-h-[520px] sm:min-h-[500px]">
       {totalNaFila > 1 && (
-        <div aria-hidden="true" className="pointer-events-none absolute inset-x-4 top-3 h-full rounded-app border border-app-line bg-app-elevated/75" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-3 top-2.5 bottom-0 rounded-app border border-app-line bg-app-elevated/75" />
       )}
       {totalNaFila > 2 && (
-        <div aria-hidden="true" className="pointer-events-none absolute inset-x-8 top-6 h-full rounded-app border border-app-line bg-app-raised/60" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-6 top-5 bottom-0 rounded-app border border-app-line bg-app-raised/60" />
       )}
       <AnimatePresence mode="wait" initial={false}>
         <motion.div

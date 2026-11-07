@@ -20,7 +20,7 @@ export function StatusBadge({ status, className, label }: StatusBadgeProps) {
   const Icon = config.icon
 
   return (
-    <span className={cn('inline-flex min-h-6 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium leading-none', config.className, className)}>
+    <span className={cn('inline-flex min-h-6 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium leading-none select-none whitespace-nowrap', config.className, className)}>
       <Icon aria-hidden className="h-3.5 w-3.5 shrink-0 stroke-[2]" />
       {label ?? config.label}
     </span>

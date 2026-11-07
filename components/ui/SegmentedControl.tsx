@@ -27,7 +27,7 @@ export function SegmentedControl<Value extends string>({ options, value, onChang
   const reducedMotion = useReducedMotion()
 
   return (
-    <div role="radiogroup" aria-label={ariaLabel} className={cn('relative grid min-h-11 rounded-full bg-app-elevated p-1', className)} style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
+    <div role="radiogroup" aria-label={ariaLabel} className={cn('relative grid min-h-11 rounded-full bg-app-elevated p-1 select-none', className)} style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
       {options.map((option) => {
         const active = option.value === value
         return (
@@ -38,7 +38,7 @@ export function SegmentedControl<Value extends string>({ options, value, onChang
             aria-checked={active}
             disabled={option.disabled}
             onClick={() => onChange(option.value)}
-            className={cn('relative z-10 inline-flex min-h-9 min-w-0 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40', active ? 'text-app-text' : 'text-app-muted hover:text-app-text')}
+            className={cn('relative z-10 inline-flex min-h-9 min-w-0 items-center justify-center gap-1.5 rounded-full px-2 sm:px-3 text-xs sm:text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 select-none', active ? 'text-app-text font-semibold' : 'text-app-muted hover:text-app-text')}
           >
             {active && (
               <motion.span

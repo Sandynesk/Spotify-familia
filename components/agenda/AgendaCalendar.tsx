@@ -174,8 +174,8 @@ export function AgendaCalendar({
         </div>
       </div>
 
-      <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} className="touch-pan-y">
-        <div className="grid grid-cols-7 gap-1 text-center">
+      <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} className="touch-pan-y select-none">
+        <div className="grid grid-cols-7 gap-1 text-center select-none">
           {['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom'].map((weekday) => (
             <span key={weekday} className="py-2 text-[11px] font-medium uppercase tracking-wide text-app-subtle">{weekday}</span>
           ))}

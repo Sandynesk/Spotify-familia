@@ -446,7 +446,7 @@ function QuickActions({ selectionMode, onToggleSelection }: { selectionMode: boo
   ]
 
   return (
-    <nav aria-label="Ações rápidas" className="-mx-5 flex max-w-[calc(100%+2.5rem)] gap-2 overflow-x-auto px-5 pb-1 sm:-mx-8 sm:max-w-[calc(100%+4rem)] sm:px-8 lg:mx-0 lg:max-w-full lg:px-0">
+    <nav aria-label="Ações rápidas" className="-mx-5 flex max-w-[calc(100%+2.5rem)] gap-2 overflow-x-auto scrollbar-none px-5 pb-1 select-none sm:-mx-8 sm:max-w-[calc(100%+4rem)] sm:px-8 lg:mx-0 lg:max-w-full lg:px-0">
       {pills.slice(0, 1).map((pill) => (
         <Link key={pill.href} href={pill.href} className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-app-line bg-app-surface px-4 text-sm font-medium text-app-text transition-colors hover:bg-app-elevated">
           <span className="text-app-accent [&>svg]:h-4 [&>svg]:w-4">{pill.icon}</span>

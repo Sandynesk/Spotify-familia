@@ -2,12 +2,26 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { CalendarDays, ChartNoAxesColumnIncreasing, Clock3, Command, House, LogOut, Menu, MessageCircleMore, Search, Settings2, UsersRound } from 'lucide-react'
+import { motion, useReducedMotion } from 'framer-motion'
+import {
+  CalendarDays,
+  ChartNoAxesColumnIncreasing,
+  Clock3,
+  House,
+  LogOut,
+  Menu,
+  MessageCircleMore,
+  Search,
+  Settings2,
+  Sparkles,
+  UsersRound,
+} from 'lucide-react'
 import { BrandMark } from '@/components/landing/BrandMark'
 import { Button } from '@/components/ui/Button'
 import { Kbd } from '@/components/ui/Kbd'
 import { useCommandPalette } from '@/components/command/CommandPaletteProvider'
 import { cn } from '@/lib/utils'
+import { springs } from '@/components/ui/motion'
 
 interface SidebarProps {
   occupiedSlots: number
@@ -30,7 +44,7 @@ const groups = [
     items: [
       { href: '/agenda', label: 'Agenda', icon: CalendarDays },
       { href: '/historico', label: 'Histórico', icon: Clock3 },
-      { href: '/retrospectiva', label: 'Retrospectiva', icon: Command },
+      { href: '/retrospectiva', label: 'Retrospectiva', icon: Sparkles },
     ],
   },
   {
@@ -46,37 +60,55 @@ const groups = [
 export function Sidebar({ occupiedSlots, monthlyValue, demo = false }: SidebarProps) {
   const pathname = usePathname()
   const { openPalette } = useCommandPalette()
+  const reducedMotion = useReducedMotion()
 
   return (
-    <aside className={cn('fixed left-0 z-40 hidden w-[264px] flex-col border-r border-app-line bg-app-surface/90 px-4 py-6 font-app backdrop-blur-2xl lg:flex', demo ? 'top-16 bottom-0' : 'inset-y-0')}>
-      <div className="px-3 pb-8">
-        <Link href="/dashboard" aria-label="SpotiFamília, ir para Hoje" className="inline-flex rounded-lg transition-transform hover:scale-[1.02]">
-          <BrandMark size={28} />
+    <aside
+      className={cn(
+        'sticky z-30 hidden w-[268px] shrink-0 flex-col border-r border-app-line bg-app-surface/90 px-3.5 py-4 font-app backdrop-blur-2xl lg:flex select-none',
+        demo ? 'top-[53px] h-[calc(100dvh-53px)]' : 'top-0 h-dvh',
+      )}
+    >
+      <div className="px-2 pb-3 pt-1">
+        <Link
+          href="/dashboard"
+          aria-label="SpotiFamília, ir para Hoje"
+          className="inline-flex rounded-lg transition-transform hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent"
+        >
+          <BrandMark size={26} />
         </Link>
       </div>
 
-      <div className="px-1 pb-5">
+      <div className="px-1 pb-3">
         <Button
           type="button"
           variant="glass"
           size="sm"
-          className="h-10 w-full justify-start rounded-app-sm px-3 font-normal text-app-muted"
-          icon={<Search />}
+          className="h-9 w-full justify-start rounded-app-xs px-2.5 text-xs font-normal text-app-muted hover:text-app-text"
+          icon={<Search className="h-3.5 w-3.5" />}
           data-command-trigger
           onClick={openPalette}
         >
-          <span className="flex flex-1 items-center justify-between gap-3">
+          <span className="flex flex-1 items-center justify-between gap-2">
             <span>Buscar</span>
-            <span className="inline-flex items-center gap-1"><Kbd>⌘</Kbd><Kbd>K</Kbd></span>
+            <span className="inline-flex items-center gap-1">
+              <Kbd>⌘</Kbd>
+              <Kbd>K</Kbd>
+            </span>
           </span>
         </Button>
       </div>
 
-      <nav className="min-h-0 flex-1 space-y-7 overflow-y-auto px-1" aria-label="Navegação principal">
+      <nav
+        className="min-h-0 flex-1 space-y-3.5 overflow-y-auto scrollbar-none px-1 select-none"
+        aria-label="Navegação principal"
+      >
         {groups.map((group) => (
           <section key={group.label}>
-            <h2 className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-app-subtle">{group.label}</h2>
-            <ul className="space-y-1">
+            <h2 className="mb-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-app-subtle select-none">
+              {group.label}
+            </h2>
+            <ul className="space-y-0.5">
               {group.items.map(({ href, label, icon: Icon }) => {
                 const active = href === '/dashboard' ? pathname === href : pathname === href || pathname.startsWith(`${href}/`)
                 return (
@@ -85,13 +117,33 @@ export function Sidebar({ occupiedSlots, monthlyValue, demo = false }: SidebarPr
                       href={href}
                       aria-current={active ? 'page' : undefined}
                       className={cn(
-                        'relative flex min-h-11 items-center gap-3 rounded-app-sm px-3 text-sm font-medium transition-colors',
-                        active ? 'bg-app-elevated text-app-text' : 'text-app-muted hover:bg-app-elevated/65 hover:text-app-text',
+                        'group relative flex h-9.5 min-h-[38px] items-center gap-3 rounded-app-xs px-3 text-xs font-medium transition-colors select-none',
+                        active ? 'text-app-text font-semibold' : 'text-app-muted hover:text-app-text hover:bg-app-elevated/50',
                       )}
                     >
-                      {active && <span aria-hidden className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-app-accent" />}
-                      <Icon aria-hidden className={cn('h-5 w-5 shrink-0', active ? 'text-app-accent' : 'text-app-subtle')} strokeWidth={1.75} />
-                      <span>{label}</span>
+                      {active && (
+                        <motion.span
+                          layoutId="sidebar-active-indicator"
+                          className="absolute inset-0 rounded-app-xs bg-app-elevated border border-app-line/80 shadow-xs"
+                          transition={reducedMotion ? { duration: 0 } : springs.snappy}
+                        />
+                      )}
+                      {active && (
+                        <motion.span
+                          layoutId="sidebar-active-accent"
+                          className="absolute left-1 top-2 bottom-2 w-1 rounded-full bg-app-accent shadow-[0_0_8px_rgba(72,229,178,0.5)]"
+                          transition={reducedMotion ? { duration: 0 } : springs.snappy}
+                        />
+                      )}
+                      <Icon
+                        aria-hidden
+                        className={cn(
+                          'relative z-[1] h-4 w-4 shrink-0 transition-colors',
+                          active ? 'text-app-accent' : 'text-app-subtle group-hover:text-app-muted',
+                        )}
+                        strokeWidth={active ? 2 : 1.75}
+                      />
+                      <span className="relative z-[1] truncate whitespace-nowrap">{label}</span>
                     </Link>
                   </li>
                 )
@@ -101,24 +153,31 @@ export function Sidebar({ occupiedSlots, monthlyValue, demo = false }: SidebarPr
         ))}
       </nav>
 
-      <div className="mt-5 border-t border-app-line pt-4">
-        <div className="rounded-app border border-app-line bg-app-elevated/70 p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs text-app-muted">Seu plano</p>
-              <p className="mt-1 text-sm font-semibold text-app-text">{occupiedSlots} de 6 vagas usadas</p>
-            </div>
-            <span className="tabular text-sm font-semibold text-app-text">{monthlyValue == null ? '—' : formatMonthly(monthlyValue)}</span>
+      <div className="mt-auto border-t border-app-line/70 pt-3 select-none">
+        <div className="group relative overflow-hidden rounded-app-xs border border-app-line bg-app-elevated/60 p-3 transition-colors hover:bg-app-elevated/90">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-medium text-app-muted">Plano Família</span>
+            <span className="tabular font-semibold text-app-text">{monthlyValue == null ? '—' : formatMonthly(monthlyValue)}</span>
           </div>
-          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-app-raised" aria-label={`${occupiedSlots} de 6 vagas usadas`} role="img">
-            <span className="block h-full rounded-full bg-app-accent transition-[width] duration-500 motion-reduce:transition-none" style={{ width: `${Math.max(0, Math.min(occupiedSlots, 6)) / 6 * 100}%` }} />
+          <div className="mt-2 flex items-center justify-between text-[11px] text-app-subtle">
+            <span>{occupiedSlots} de 6 vagas usadas</span>
+            <span className="font-semibold text-app-accent">{Math.round((occupiedSlots / 6) * 100)}%</span>
           </div>
-          <p className="mt-2 text-[11px] text-app-subtle">total mensal</p>
+          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-app-raised">
+            <span
+              className="block h-full rounded-full bg-gradient-to-r from-app-accent to-emerald-400 transition-[width] duration-500 ease-out"
+              style={{ width: `${Math.max(0, Math.min(occupiedSlots, 6)) / 6 * 100}%` }}
+            />
+          </div>
         </div>
-        <form action="/sair" method="post" className="mt-3">
-          <Button type="submit" variant="ghost" size="md" className="w-full justify-start rounded-app-sm px-3 text-app-muted" icon={<LogOut />}>
-            Sair
-          </Button>
+        <form action="/sair" method="post" className="mt-2">
+          <button
+            type="submit"
+            className="flex h-8 w-full items-center gap-2 rounded-app-xs px-2.5 text-xs font-medium text-app-muted transition-colors hover:bg-app-elevated/80 hover:text-app-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent"
+          >
+            <LogOut className="h-3.5 w-3.5 shrink-0 text-app-subtle" />
+            <span>Sair da conta</span>
+          </button>
         </form>
       </div>
     </aside>

@@ -12,9 +12,13 @@ export function PageTransition({ children }: { children: ReactNode }) {
   return (
     <motion.div
       key={pathname}
-      initial={reducedMotion ? undefined : { opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={reducedMotion ? { duration: 0 } : { duration: 0.15, ease: 'easeOut' }}
+      initial={reducedMotion ? undefined : { opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={
+        reducedMotion
+          ? { duration: 0 }
+          : { duration: 0.22, ease: [0.22, 1, 0.36, 1] }
+      }
       className="min-h-full"
     >
       {children}

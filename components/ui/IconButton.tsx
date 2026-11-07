@@ -23,7 +23,7 @@ export function IconButton({ icon, variant = 'default', size = 'md', className, 
     <button
       type="button"
       className={cn(
-        'inline-flex shrink-0 items-center justify-center rounded-full transition-[background-color,color,transform] duration-200 active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45 [&>svg]:h-5 [&>svg]:w-5 [&>svg]:stroke-[1.75]',
+        'inline-flex shrink-0 items-center justify-center rounded-full transition-[background-color,color,transform] duration-200 active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-45 select-none [&>svg]:h-5 [&>svg]:w-5 [&>svg]:stroke-[1.75]',
         variants[variant],
         sizes[size],
         className,

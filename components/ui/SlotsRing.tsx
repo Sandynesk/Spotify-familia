@@ -18,7 +18,7 @@ export function SlotsRing({ occupied = 0, paid = 0, total = 6, size = 68, classN
   const description = label ?? `${safePaid} de ${safeOccupied} vagas pagas, ${safeOccupied} de ${safeTotal} ocupadas`
 
   return (
-    <span className={cn('relative inline-grid shrink-0 place-items-center text-app-accent', className)} style={{ width: size, height: size }} role="img" aria-label={description}>
+    <span className={cn('relative inline-grid shrink-0 place-items-center text-app-accent select-none', className)} style={{ width: size, height: size }} role="img" aria-label={description}>
       <svg aria-hidden="true" viewBox={`0 0 ${BRAND_VIEW} ${BRAND_VIEW}`} width={size} height={size}>
         {BRAND_CAPSULES.map((path, index) => {
           const fill = index < safePaid ? 'var(--color-app-accent)' : index < safeOccupied ? 'var(--color-app-warn)' : 'rgb(255 255 255 / 0.14)'

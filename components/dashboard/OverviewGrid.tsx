@@ -175,12 +175,12 @@ export function OverviewGrid({ membros, pagamentos: initialPagamentos, ano }: Ov
         <Legend status="outside-plan" />
       </div>
 
-      <div className="mt-4 max-w-full overflow-x-auto rounded-app-sm border border-app-line overscroll-x-contain">
-        <table className="w-full min-w-[820px] border-separate border-spacing-0 text-left">
+      <div className="mt-4 max-w-full overflow-x-auto scrollbar-thin rounded-app-sm border border-app-line overscroll-x-contain">
+        <table className="w-full min-w-[820px] border-separate border-spacing-0 text-left select-none">
           <caption className="sr-only">Pagamentos de {ano} por membro e mês</caption>
           <thead>
             <tr>
-              <th scope="col" className="sticky left-0 z-20 min-w-36 border-b border-app-line bg-app-surface px-3 py-3 text-xs font-medium text-app-muted">
+              <th scope="col" className="sticky left-0 z-20 min-w-36 border-b border-r border-app-line/60 bg-app-surface/98 px-3 py-3 text-xs font-medium text-app-muted shadow-[4px_0_12px_rgba(0,0,0,0.35)] backdrop-blur-md">
                 Membro
               </th>
               {MONTHS.map((month, index) => (
@@ -195,7 +195,7 @@ export function OverviewGrid({ membros, pagamentos: initialPagamentos, ano }: Ov
           <tbody>
             {membros.map(membro => (
               <tr key={membro.id}>
-                <th scope="row" className="sticky left-0 z-10 min-w-36 border-b border-app-line bg-app-surface px-3 py-2 text-left">
+                <th scope="row" className="sticky left-0 z-10 min-w-36 border-b border-r border-app-line/60 bg-app-surface/98 px-3 py-2 text-left shadow-[4px_0_12px_rgba(0,0,0,0.35)] backdrop-blur-md">
                   <div className="flex min-w-0 items-center gap-2.5">
                     <Avatar nome={membro.nome} cor={membro.cor_avatar} size="sm" />
                     <span className="max-w-[5.5rem] truncate text-xs font-medium text-app-text">{membro.nome}</span>

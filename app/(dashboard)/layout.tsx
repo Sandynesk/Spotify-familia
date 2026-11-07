@@ -25,25 +25,27 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const occupiedSlots = Math.min(membros.length + 1, 6)
 
   return (
-    <div className={`${geist.variable} font-app min-h-dvh overflow-x-clip bg-app-bg text-app-text antialiased`}>
+    <div className={`${geist.variable} font-app flex min-h-dvh flex-col bg-app-bg text-app-text antialiased selection:bg-app-accent/25 selection:text-app-accent`}>
       {/* Demo mode banner */}
       <DemoBanner />
 
       <CommandPaletteProvider>
-        {/* Desktop sidebar */}
-        <Sidebar occupiedSlots={occupiedSlots} monthlyValue={configuracoes?.valor_plano ?? null} demo={demo} />
+        <div className="flex flex-1 min-h-0 relative">
+          {/* Desktop sidebar */}
+          <Sidebar occupiedSlots={occupiedSlots} monthlyValue={configuracoes?.valor_plano ?? null} demo={demo} />
 
-        {/* Main content */}
-        <main className="min-h-dvh pb-32 lg:ml-[264px] lg:pb-12">
-          <div className="relative mx-auto w-full max-w-5xl px-5 sm:px-8">
-            <div className="absolute right-5 top-[max(env(safe-area-inset-top),12px)] z-40 lg:hidden sm:right-8">
-              <MobileCommandTrigger />
+          {/* Main content */}
+          <main className="flex-1 min-w-0 pb-32 lg:pb-12">
+            <div className="relative mx-auto w-full max-w-5xl px-5 sm:px-8">
+              <div className="absolute right-5 top-[max(env(safe-area-inset-top),12px)] z-40 lg:hidden sm:right-8">
+                <MobileCommandTrigger />
+              </div>
+              <div className="pt-[calc(max(env(safe-area-inset-top),16px)+3.5rem)] lg:pt-6">
+                <PageTransition>{children}</PageTransition>
+              </div>
             </div>
-            <div className="pt-[calc(max(env(safe-area-inset-top),16px)+3.5rem)] lg:pt-[max(env(safe-area-inset-top),16px)]">
-              <PageTransition>{children}</PageTransition>
-            </div>
-          </div>
-        </main>
+          </main>
+        </div>
 
         {/* Mobile navigation */}
         <BottomNav />
