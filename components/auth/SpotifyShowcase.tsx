@@ -46,12 +46,12 @@ export function SpotifyShowcaseCompact() {
     <div className="flex flex-col items-center justify-center text-center">
       {/* Compact rotating vinyl with glow */}
       <div className="relative mb-2 flex items-center justify-center">
-        <SpotifyVinyl size={100} />
+        <SpotifyVinyl size={96} />
       </div>
 
       {/* Mini soundwave */}
-      <div className="mb-2 w-36">
-        <SoundwaveEqualizer barCount={18} />
+      <div className="mb-2 w-32">
+        <SoundwaveEqualizer barCount={16} />
       </div>
 
       <h1 className="text-xl font-bold tracking-tight text-app-text">
@@ -61,6 +61,19 @@ export function SpotifyShowcaseCompact() {
       <p className="mt-1 text-xs text-app-muted max-w-[280px]">
         Organize as 6 vagas e feche o mês com tranquilidade.
       </p>
+
+      {/* Mini real human avatars row on mobile */}
+      <div className="mt-2.5 flex items-center justify-center -space-x-1.5 py-0.5">
+        {['/avatars/ana.jpg', '/avatars/bruno.jpg', '/avatars/carla.jpg', '/avatars/diego.jpg', '/avatars/eduarda.jpg', '/avatars/felipe.jpg'].map((src, i) => (
+          <img
+            key={i}
+            src={src}
+            alt="Membro da família"
+            className="h-6 w-6 rounded-full border-2 border-app-surface object-cover shadow-xs"
+          />
+        ))}
+        <span className="ml-2.5 text-[11px] font-semibold text-app-accent">6/6 em dia</span>
+      </div>
     </div>
   )
 }
