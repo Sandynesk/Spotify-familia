@@ -1,7 +1,8 @@
 import { Sidebar } from '@/components/layout/Sidebar'
 import { BottomNav } from '@/components/layout/BottomNav'
-import { FAB } from '@/components/layout/FAB'
 import { getSession } from '@/lib/auth'
+import { getMembros } from '@/lib/actions/membros'
+import { getConfiguracoes } from '@/lib/actions/configuracoes'
 import { redirect } from 'next/navigation'
 import { Geist } from 'next/font/google'
 
@@ -15,19 +16,23 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/login')
   }
 
+  const [membros, configuracoes] = await Promise.all([getMembros(), getConfiguracoes()])
+  const occupiedSlots = Math.min(membros.length + 1, 6)
+
   return (
-    <div className={`${geist.variable} font-app min-h-dvh bg-app-bg text-app-text antialiased`}>
+    <div className={`${geist.variable} font-app min-h-dvh overflow-x-clip bg-app-bg text-app-text antialiased`}>
       {/* Desktop sidebar */}
-      <Sidebar />
+      <Sidebar occupiedSlots={occupiedSlots} monthlyValue={configuracoes?.valor_plano ?? null} />
 
       {/* Main content */}
-      <main className="lg:ml-64 min-h-screen pb-24 lg:pb-8">
-        {children}
+      <main className="min-h-dvh pb-32 lg:ml-[264px] lg:pb-12">
+        <div className="mx-auto w-full max-w-5xl px-5 pt-[max(env(safe-area-inset-top),16px)] sm:px-8">
+          {children}
+        </div>
       </main>
 
-      {/* Mobile nav + FAB */}
+      {/* Mobile navigation */}
       <BottomNav />
-      <FAB />
     </div>
   )
 }

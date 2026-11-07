@@ -2,49 +2,55 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, Calendar, History } from 'lucide-react'
+import { motion, useReducedMotion } from 'framer-motion'
+import { ChartNoAxesColumnIncreasing, House, Menu, MessageCircleMore, UsersRound } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { springs } from '@/components/ui/motion'
 
-const navItems = [
-  { href: '/dashboard',   label: 'Início',      icon: LayoutDashboard },
-  { href: '/membros',     label: 'Membros',     icon: Users },
-  { href: '/visao-geral', label: 'Visão Geral', icon: Calendar },
-  { href: '/historico',   label: 'Histórico',   icon: History },
+const tabs = [
+  { href: '/dashboard', label: 'Hoje', icon: House },
+  { href: '/membros', label: 'Membros', icon: UsersRound },
+  { href: '/cobrar', label: 'Cobrar', icon: MessageCircleMore },
+  { href: '/visao-geral', label: 'Insights', icon: ChartNoAxesColumnIncreasing },
+  { href: '/mais', label: 'Mais', icon: Menu },
 ]
 
+/** Floating mobile navigation with a shared spring indicator. */
 export function BottomNav() {
   const pathname = usePathname()
+  const reducedMotion = useReducedMotion()
+  const activeHref = activeTab(pathname)
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 lg:hidden border-t border-app-line bg-app-bg/80 backdrop-blur-md pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+      className="app-glass fixed bottom-[max(12px,env(safe-area-inset-bottom))] left-3 right-3 z-40 rounded-[28px] px-1.5 pb-1.5 pt-1.5 shadow-app-float lg:hidden"
       aria-label="Navegação principal"
     >
-      <div className="flex items-center justify-around px-2 pt-1.5">
-        {navItems.map(({ href, label, icon: Icon }) => {
-          const isActive = href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(href)
+      <div className="grid grid-cols-5">
+        {tabs.map(({ href, label, icon: Icon }) => {
+          const active = href === activeHref
           return (
             <Link
-              key={href}
               href={href}
-              className={`
-                flex flex-col items-center justify-center gap-1 px-3 py-1 rounded-xl
-                transition-colors min-h-[44px] min-w-[56px]
-                ${isActive
-                  ? 'text-app-accent'
-                  : 'text-app-muted hover:text-app-text'
-                }
-              `}
-              aria-current={isActive ? 'page' : undefined}
+              key={href}
+              aria-current={active ? 'page' : undefined}
+              className={cn('relative flex min-h-[54px] min-w-0 flex-col items-center justify-center gap-1 rounded-[22px] px-1 text-[10px] font-medium leading-none transition-colors', active ? 'text-app-accent' : 'text-app-muted hover:text-app-text')}
             >
-              <Icon
-                className="w-5 h-5 flex-shrink-0"
-                strokeWidth={isActive ? 2.5 : 1.75}
-              />
-              <span className="text-xs font-medium leading-none">{label}</span>
+              {active && <motion.span aria-hidden layoutId="mobile-nav-active" className="absolute inset-0 rounded-[22px] bg-app-elevated/85" transition={reducedMotion ? { duration: 0 } : springs.snappy} />}
+              <Icon aria-hidden className="relative z-[1] h-5 w-5 shrink-0" strokeWidth={active ? 2 : 1.75} />
+              <span className="relative z-[1] truncate">{label}</span>
             </Link>
           )
         })}
       </div>
     </nav>
   )
+}
+
+function activeTab(pathname: string): string {
+  if (pathname === '/dashboard' || pathname === '/') return '/dashboard'
+  if (pathname.startsWith('/membros')) return '/membros'
+  if (pathname.startsWith('/cobrar')) return '/cobrar'
+  if (pathname.startsWith('/visao-geral')) return '/visao-geral'
+  return '/mais'
 }
