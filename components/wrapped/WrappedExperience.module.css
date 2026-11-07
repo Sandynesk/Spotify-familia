@@ -1,0 +1,26 @@
+.progressFill {
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: wrapped-story-progress 6s linear forwards;
+}
+
+.paused {
+  animation-play-state: paused;
+}
+
+.still {
+  transform: scaleX(0);
+}
+
+@keyframes wrapped-story-progress {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressFill {
+    animation: none;
+    transform: scaleX(0);
+  }
+}
