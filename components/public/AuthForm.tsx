@@ -161,6 +161,11 @@ export function AuthForm({ mode: initialMode, initialError }: AuthFormProps) {
           return
         }
 
+        if (typeof document !== 'undefined') {
+          document.cookie = 'sf_demo=; path=/; max-age=0'
+          document.cookie = 'sf_demo_sid=; path=/; max-age=0'
+          document.cookie = 'sf_demo_client=; path=/; max-age=0'
+        }
         toastSuccess('Bem-vindo de volta!')
         router.push('/dashboard')
         router.refresh()
@@ -182,6 +187,11 @@ export function AuthForm({ mode: initialMode, initialError }: AuthFormProps) {
       }
 
       if (data.session) {
+        if (typeof document !== 'undefined') {
+          document.cookie = 'sf_demo=; path=/; max-age=0'
+          document.cookie = 'sf_demo_sid=; path=/; max-age=0'
+          document.cookie = 'sf_demo_client=; path=/; max-age=0'
+        }
         toastSuccess('Conta criada com sucesso!')
         router.push('/dashboard')
         router.refresh()
