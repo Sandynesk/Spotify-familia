@@ -1,6 +1,7 @@
 import { Sidebar } from '@/components/layout/Sidebar'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { DemoBanner } from '@/components/demo/DemoBanner'
+import { SmartMobileInstallBanner } from '@/components/pwa/SmartMobileInstallBanner'
 import { CommandPaletteProvider } from '@/components/command/CommandPaletteProvider'
 import { MobileCommandTrigger } from '@/components/command/MobileCommandTrigger'
 import { PageTransition } from '@/components/layout/PageTransition'
@@ -41,6 +42,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 <MobileCommandTrigger />
               </div>
               <div className="pt-[calc(max(env(safe-area-inset-top),16px)+3.5rem)] lg:pt-6">
+                <SmartMobileInstallBanner />
                 <PageTransition>{children}</PageTransition>
               </div>
             </div>

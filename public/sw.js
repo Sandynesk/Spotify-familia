@@ -1,15 +1,18 @@
 /* global self, caches, clients, fetch, URL, Response */
 
 const CACHE_PREFIX = 'spotifamilia-pwa-'
-const CACHE_NAME = `${CACHE_PREFIX}v1`
+const CACHE_NAME = `${CACHE_PREFIX}v2`
 const PRECACHE_URLS = [
   '/offline',
   '/icons/favicon.svg',
+  '/icons/apple-touch-icon.png',
   '/icons/apple-touch-icon.svg',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/icons/icon-maskable-192.png',
+  '/icons/icon-maskable-512.png',
   '/icons/icon-192.svg',
   '/icons/icon-512.svg',
-  '/icons/icon-maskable-192.svg',
-  '/icons/icon-maskable-512.svg',
 ]
 
 self.addEventListener('install', (event) => {

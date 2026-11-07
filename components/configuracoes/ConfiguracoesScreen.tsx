@@ -21,6 +21,7 @@ import {
 import { useToast } from '@/components/ui/Toast'
 import { PixQrPreview } from '@/components/configuracoes/PixQrPreview'
 import { ReajusteSheet } from '@/components/configuracoes/ReajusteSheet'
+import { InstallAppRow } from '@/components/pwa/InstallAppRow'
 import { formatMoneyInput, parseMoneyInput } from '@/components/configuracoes/money'
 import { useLocalStorageState } from '@/components/configuracoes/useLocalStorageState'
 import { salvarConfiguracoes } from '@/lib/actions/configuracoes'
@@ -414,13 +415,10 @@ export function ConfiguracoesScreen({ initialConfig, membros, email, isDemo, ini
         </section>
 
         <section className="min-w-0 space-y-3">
-          <ListGroup title="App">
-            <ListRow
-              title="Instalar na tela inicial"
-              description="Veja as instruções para instalar o app"
-              href="/mais"
-              icon={<ExternalLink />}
-            />
+          <ListGroup title="App para Celular">
+            <div className="p-3">
+              <InstallAppRow />
+            </div>
             <ListRow
               title="Refazer a introdução"
               description="Revise os passos iniciais quando quiser"
@@ -428,7 +426,7 @@ export function ConfiguracoesScreen({ initialConfig, membros, email, isDemo, ini
               icon={<RotateCcw />}
             />
           </ListGroup>
-          <p className="px-1 text-xs leading-relaxed text-app-subtle">No iPhone: abra o menu Compartilhar no Safari e toque em “Adicionar à Tela de Início”.</p>
+          <p className="px-1 text-xs leading-relaxed text-app-subtle">Instale sem passar por lojas de aplicativos. Funciona no Android (1 clique) e no iPhone (via Safari).</p>
         </section>
       </div>
 
