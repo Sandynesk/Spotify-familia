@@ -1,7 +1,11 @@
 import { Sidebar } from '@/components/layout/Sidebar'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { DemoBanner } from '@/components/demo/DemoBanner'
+import { CommandPaletteProvider } from '@/components/command/CommandPaletteProvider'
+import { MobileCommandTrigger } from '@/components/command/MobileCommandTrigger'
+import { PageTransition } from '@/components/layout/PageTransition'
 import { getSession } from '@/lib/auth'
+import { isDemo } from '@/lib/demo/session'
 import { getMembros } from '@/lib/actions/membros'
 import { getConfiguracoes } from '@/lib/actions/configuracoes'
 import { redirect } from 'next/navigation'
@@ -17,7 +21,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/login')
   }
 
-  const [membros, configuracoes] = await Promise.all([getMembros(), getConfiguracoes()])
+  const [membros, configuracoes, demo] = await Promise.all([getMembros(), getConfiguracoes(), isDemo()])
   const occupiedSlots = Math.min(membros.length + 1, 6)
 
   return (
@@ -25,18 +29,25 @@ export default async function DashboardLayout({ children }: { children: React.Re
       {/* Demo mode banner */}
       <DemoBanner />
 
-      {/* Desktop sidebar */}
-      <Sidebar occupiedSlots={occupiedSlots} monthlyValue={configuracoes?.valor_plano ?? null} />
+      <CommandPaletteProvider>
+        {/* Desktop sidebar */}
+        <Sidebar occupiedSlots={occupiedSlots} monthlyValue={configuracoes?.valor_plano ?? null} demo={demo} />
 
-      {/* Main content */}
-      <main className="min-h-dvh pb-32 lg:ml-[264px] lg:pb-12">
-        <div className="mx-auto w-full max-w-5xl px-5 pt-[max(env(safe-area-inset-top),16px)] sm:px-8">
-          {children}
-        </div>
-      </main>
+        {/* Main content */}
+        <main className="min-h-dvh pb-32 lg:ml-[264px] lg:pb-12">
+          <div className="relative mx-auto w-full max-w-5xl px-5 sm:px-8">
+            <div className="absolute right-5 top-[max(env(safe-area-inset-top),12px)] z-40 lg:hidden sm:right-8">
+              <MobileCommandTrigger />
+            </div>
+            <div className="pt-[calc(max(env(safe-area-inset-top),16px)+3.5rem)] lg:pt-[max(env(safe-area-inset-top),16px)]">
+              <PageTransition>{children}</PageTransition>
+            </div>
+          </div>
+        </main>
 
-      {/* Mobile navigation */}
-      <BottomNav />
+        {/* Mobile navigation */}
+        <BottomNav />
+      </CommandPaletteProvider>
     </div>
   )
 }

@@ -2,15 +2,17 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { CalendarDays, ChartNoAxesColumnIncreasing, Clock3, Command, House, LogOut, MessageCircleMore, Search, Settings2, UsersRound } from 'lucide-react'
+import { CalendarDays, ChartNoAxesColumnIncreasing, Clock3, Command, House, LogOut, Menu, MessageCircleMore, Search, Settings2, UsersRound } from 'lucide-react'
 import { BrandMark } from '@/components/landing/BrandMark'
 import { Button } from '@/components/ui/Button'
 import { Kbd } from '@/components/ui/Kbd'
+import { useCommandPalette } from '@/components/command/CommandPaletteProvider'
 import { cn } from '@/lib/utils'
 
 interface SidebarProps {
   occupiedSlots: number
   monthlyValue: number | null
+  demo?: boolean
 }
 
 const groups = [
@@ -33,16 +35,20 @@ const groups = [
   },
   {
     label: 'Conta',
-    items: [{ href: '/configuracoes', label: 'Configurações', icon: Settings2 }],
+    items: [
+      { href: '/configuracoes', label: 'Configurações', icon: Settings2 },
+      { href: '/mais', label: 'Mais', icon: Menu },
+    ],
   },
 ]
 
 /** Fixed desktop navigation with account actions and live plan summary. */
-export function Sidebar({ occupiedSlots, monthlyValue }: SidebarProps) {
+export function Sidebar({ occupiedSlots, monthlyValue, demo = false }: SidebarProps) {
   const pathname = usePathname()
+  const { openPalette } = useCommandPalette()
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 hidden w-[264px] flex-col border-r border-app-line bg-app-surface/90 px-4 py-6 font-app backdrop-blur-2xl lg:flex">
+    <aside className={cn('fixed left-0 z-40 hidden w-[264px] flex-col border-r border-app-line bg-app-surface/90 px-4 py-6 font-app backdrop-blur-2xl lg:flex', demo ? 'top-16 bottom-0' : 'inset-y-0')}>
       <div className="px-3 pb-8">
         <Link href="/dashboard" aria-label="SpotiFamília, ir para Hoje" className="inline-flex rounded-lg transition-transform hover:scale-[1.02]">
           <BrandMark size={28} />
@@ -57,6 +63,7 @@ export function Sidebar({ occupiedSlots, monthlyValue }: SidebarProps) {
           className="h-10 w-full justify-start rounded-app-sm px-3 font-normal text-app-muted"
           icon={<Search />}
           data-command-trigger
+          onClick={openPalette}
         >
           <span className="flex flex-1 items-center justify-between gap-3">
             <span>Buscar</span>
