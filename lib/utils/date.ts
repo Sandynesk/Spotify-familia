@@ -1,7 +1,3 @@
-export function getMonthStart(date: Date = new Date()): Date {
-  return new Date(date.getFullYear(), date.getMonth(), 1)
-}
-
 export function formatMonthYear(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date + 'T12:00:00') : date
   return d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
@@ -49,9 +45,27 @@ export function getCurrentMonthISO(): string {
   return `${year}-${month}-01`
 }
 
-export function addMonths(date: Date, months: number): Date {
-  const d = new Date(date)
-  d.setMonth(d.getMonth() + months)
-  d.setDate(1)
-  return d
+/** 'YYYY-MM-01' do mês que contém a data ISO ('YYYY-MM-DD' ou timestamp). */
+export function toMonthISO(isoDate: string): string {
+  return `${isoDate.slice(0, 7)}-01`
+}
+
+/** Meses 'YYYY-MM-01' de `from` até `to`, inclusive. */
+export function listMonths(from: string, to: string): string[] {
+  const months: string[] = []
+  let year = Number(from.slice(0, 4))
+  let month = Number(from.slice(5, 7))
+  const end = to.slice(0, 7)
+
+  while (true) {
+    const key = `${year}-${String(month).padStart(2, '0')}`
+    if (key > end) break
+    months.push(`${key}-01`)
+    month++
+    if (month > 12) {
+      month = 1
+      year++
+    }
+  }
+  return months
 }

@@ -28,7 +28,9 @@ CREATE TABLE IF NOT EXISTS pagamentos (
   status TEXT NOT NULL DEFAULT 'pendente', -- 'pendente' | 'pago' | 'atrasado'
   data_pagamento TIMESTAMPTZ,
   observacao TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  -- Uma cobrança por membro por mês (o app cria as que faltam automaticamente)
+  CONSTRAINT pagamentos_membro_mes_unique UNIQUE (membro_id, mes_referencia)
 );
 
 -- Habilitar RLS

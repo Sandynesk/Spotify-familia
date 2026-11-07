@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getEffectiveStatus, getCurrentMonthISO } from '@/lib/utils/date'
+import { garantirPagamentos } from '@/lib/utils/payments'
 import type { Pagamento } from '@/types/database'
 
 export async function getPagamentosMembro(membroId: string): Promise<Pagamento[]> {
@@ -11,6 +12,8 @@ export async function getPagamentosMembro(membroId: string): Promise<Pagamento[]
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return []
+
+  await garantirPagamentos(supabase, user.id)
 
   const { data, error } = await supabase
     .from('pagamentos')
@@ -33,6 +36,8 @@ export async function getPagamentosMesAtual() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return []
 
+  await garantirPagamentos(supabase, user.id)
+
   const mesAtual = getCurrentMonthISO()
 
   const { data, error } = await supabase
@@ -52,7 +57,7 @@ export async function getPagamentosMesAtual() {
   }))
 }
 
-export async function marcarPago(pagamentoId: string, membroId: string) {
+export async function marcarPago(pagamentoId: string) {
   const supabase = await createClient()
 
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -68,15 +73,11 @@ export async function marcarPago(pagamentoId: string, membroId: string) {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/')
-  revalidatePath(`/membros/${membroId}`)
-  revalidatePath('/dashboard')
-  revalidatePath('/historico')
-  revalidatePath('/visao-geral')
+  revalidatePath('/', 'layout')
   return { success: true }
 }
 
-export async function desfazerPagamento(pagamentoId: string, membroId: string, mesReferencia: string) {
+export async function desfazerPagamento(pagamentoId: string, mesReferencia: string) {
   const supabase = await createClient()
 
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -94,11 +95,7 @@ export async function desfazerPagamento(pagamentoId: string, membroId: string, m
 
   if (error) return { error: error.message }
 
-  revalidatePath('/')
-  revalidatePath(`/membros/${membroId}`)
-  revalidatePath('/dashboard')
-  revalidatePath('/historico')
-  revalidatePath('/visao-geral')
+  revalidatePath('/', 'layout')
   return { success: true }
 }
 
@@ -108,6 +105,8 @@ export async function getDashboardData() {
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return null
+
+    await garantirPagamentos(supabase, user.id)
 
     // Buscar membros ativos + seus pagamentos do mês atual
     const mesAtual = getCurrentMonthISO()
@@ -176,6 +175,8 @@ export async function getVisaoGeralData(ano: number = new Date().getFullYear()) 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
+  await garantirPagamentos(supabase, user.id)
+
   // Buscar membros ativos
   const { data: membros } = await supabase
     .from('membros')
@@ -218,7 +219,9 @@ export async function getVisaoGeralData(ano: number = new Date().getFullYear()) 
   }
 }
 
-export async function atualizarValorPagamento(pagamentoId: string, membroId: string, novoValor: number) {
+export async function atualizarValorPagamento(pagamentoId: string, novoValor: number) {
+  if (!Number.isFinite(novoValor) || novoValor < 0) return { error: 'Valor inválido' }
+
   const supabase = await createClient()
 
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -233,10 +236,6 @@ export async function atualizarValorPagamento(pagamentoId: string, membroId: str
 
   if (error) return { error: error.message }
 
-  revalidatePath('/')
-  revalidatePath(`/membros/${membroId}`)
-  revalidatePath('/dashboard')
-  revalidatePath('/historico')
-  revalidatePath('/visao-geral')
+  revalidatePath('/', 'layout')
   return { success: true }
 }

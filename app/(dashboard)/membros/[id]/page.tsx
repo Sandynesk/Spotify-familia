@@ -102,7 +102,7 @@ export default async function MembroDetailPage({ params }: Params) {
         {/* Payment history */}
         <div>
           <h2 className="text-white font-semibold text-sm mb-3">Histórico de pagamentos</h2>
-          <PaymentHistory pagamentos={pagamentos} membroId={id} />
+          <PaymentHistory pagamentos={pagamentos} />
         </div>
       </div>
     </>

@@ -6,12 +6,15 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { createClient } from '@/lib/supabase/server'
 import { getEffectiveStatus, formatShortMonthYear, formatDateTime } from '@/lib/utils/date'
 import { formatCurrency } from '@/lib/utils/currency'
-import type { PagamentoStatus } from '@/types/database'
+import { garantirPagamentos } from '@/lib/utils/payments'
+import type { Membro, PagamentoStatus } from '@/types/database'
 
 async function HistoricoContent() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
+
+  await garantirPagamentos(supabase, user.id)
 
   const { data } = await supabase
     .from('pagamentos')
@@ -53,7 +56,7 @@ async function HistoricoContent() {
           </h2>
           <div className="bg-[#181818] rounded-lg overflow-hidden">
             {pags.map((p, i) => {
-              const membro = (p as any).membros
+              const membro = p.membros as Pick<Membro, 'nome' | 'cor_avatar'> | null
               return (
                 <div key={p.id} className={`flex items-center gap-3 px-4 py-3 ${i < pags.length - 1 ? 'border-b border-white/5' : ''}`}>
                   <Avatar nome={membro?.nome || '?'} cor={membro?.cor_avatar} size="sm" />

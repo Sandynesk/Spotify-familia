@@ -93,7 +93,7 @@ lib/
 └── utils/                 → Formatadores de Moeda, Data e Geração de cores
 
 types/database.ts          → Tipagem estrita de tabelas
-middleware.ts              → Guardião de rotas autenticadas da aplicação
+proxy.ts                   → Guardião de rotas autenticadas da aplicação
 ```
 
 ---

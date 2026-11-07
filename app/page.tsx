@@ -1,6 +1,5 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Users, DivideCircle, CalendarCheck, CheckCircle2, User, History, ArrowUpRight } from 'lucide-react'
@@ -9,25 +8,31 @@ import { Footer } from '@/components/public/Footer'
 import { SpotifyLogo } from '@/components/ui/SpotifyLogo'
 
 
+// Gerador pseudoaleatório com semente fixa: servidor e cliente geram exatamente
+// os mesmos valores, então não há diferença de hidratação nem estado extra.
+function seededRandom(seed: number) {
+  let state = seed
+  return () => {
+    state = (state * 1664525 + 1013904223) % 4294967296
+    return state / 4294967296
+  }
+}
+
+const PARTICLES = (() => {
+  const random = seededRandom(42)
+  return Array.from({ length: 8 }).map((_, i) => ({
+    id: i,
+    size: random() * 20 + 10,
+    radius: random() > 0.5 ? '50%' : '4px',
+    top: `${random() * 100}%`,
+    left: `${random() * 100}%`,
+    rotate: random() * 360,
+    duration: random() * 5 + 5,
+  }))
+})()
+
 function Particles() {
-  const [mounted, setMounted] = useState(false)
-  const [particles, setParticles] = useState<any[]>([])
-
-  useEffect(() => {
-    const newParticles = Array.from({ length: 8 }).map((_, i) => ({
-      id: i,
-      size: Math.random() * 20 + 10,
-      radius: Math.random() > 0.5 ? '50%' : '4px',
-      top: `${Math.random() * 100}%`,
-      left: `${Math.random() * 100}%`,
-      rotate: Math.random() * 360,
-      duration: Math.random() * 5 + 5,
-    }))
-    setParticles(newParticles)
-    setMounted(true)
-  }, [])
-
-  if (!mounted) return null
+  const particles = PARTICLES
 
   return (
     <>

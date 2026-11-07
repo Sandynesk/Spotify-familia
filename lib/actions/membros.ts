@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { generatePayments } from '@/lib/utils/payments'
+import { garantirPagamentos } from '@/lib/utils/payments'
+import { getCurrentMonthISO } from '@/lib/utils/date'
 import { getAvatarColor } from '@/lib/utils/avatar'
 
 export interface MembroFormData {
@@ -42,23 +43,9 @@ export async function criarMembro(formData: MembroFormData) {
     return { error: error?.message || 'Erro ao criar membro' }
   }
 
-  // Gerar 12 meses de pagamentos
-  const payments = generatePayments(membro.id, formData.valor_mensal)
+  await garantirPagamentos(supabase, user.id)
 
-  const { error: payError } = await supabase
-    .from('pagamentos')
-    .insert(payments)
-
-  if (payError) {
-    // Rollback — deletar membro criado
-    await supabase.from('membros').delete().eq('id', membro.id)
-    return { error: 'Erro ao gerar pagamentos: ' + payError.message }
-  }
-
-  revalidatePath('/')
-  revalidatePath('/dashboard')
-  revalidatePath('/historico')
-  revalidatePath('/visao-geral')
+  revalidatePath('/', 'layout')
   return { success: true, id: membro.id }
 }
 
@@ -83,22 +70,18 @@ export async function editarMembro(id: string, formData: MembroFormData) {
 
   if (error) return { error: error.message }
 
-  // Atualiza as parcelas futuras/não pagas do membro com o novo valor
-  const { error: payUpdateError } = await supabase
+  // Cobranças em aberto a partir do mês atual passam a usar o novo valor.
+  // Meses anteriores não pagos mantêm o valor que era devido na época.
+  const { error: payError } = await supabase
     .from('pagamentos')
     .update({ valor: formData.valor_mensal })
     .eq('membro_id', id)
     .neq('status', 'pago')
+    .gte('mes_referencia', getCurrentMonthISO())
 
-  if (payUpdateError) {
-    console.error('Erro ao atualizar parcelas futuras:', payUpdateError.message)
-  }
+  if (payError) return { error: 'Membro salvo, mas erro ao atualizar cobranças: ' + payError.message }
 
-  revalidatePath('/')
-  revalidatePath(`/membros/${id}`)
-  revalidatePath('/dashboard')
-  revalidatePath('/historico')
-  revalidatePath('/visao-geral')
+  revalidatePath('/', 'layout')
   return { success: true }
 }
 
@@ -116,10 +99,7 @@ export async function deletarMembro(id: string) {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/')
-  revalidatePath('/dashboard')
-  revalidatePath('/historico')
-  revalidatePath('/visao-geral')
+  revalidatePath('/', 'layout')
   redirect('/dashboard')
 }
 

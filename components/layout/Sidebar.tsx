@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, History, Calendar, LogOut, Music2 } from 'lucide-react'
+import { LayoutDashboard, Users, History, Calendar, LogOut } from 'lucide-react'
 import { SpotifyLogo } from '@/components/ui/SpotifyLogo'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'

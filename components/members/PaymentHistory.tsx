@@ -11,15 +11,13 @@ import type { Pagamento } from '@/types/database'
 
 interface PaymentHistoryProps {
   pagamentos: Pagamento[]
-  membroId: string
 }
 
 interface PaymentItemProps {
   pagamento: Pagamento
-  membroId: string
 }
 
-function PaymentItem({ pagamento, membroId }: PaymentItemProps) {
+function PaymentItem({ pagamento }: PaymentItemProps) {
   const { success, error } = useToast()
   const [pending, startTransition] = useTransition()
   const [isEditing, setIsEditing] = useState(false)
@@ -27,7 +25,7 @@ function PaymentItem({ pagamento, membroId }: PaymentItemProps) {
 
   function handleMarcarPago() {
     startTransition(async () => {
-      const result = await marcarPago(pagamento.id, membroId)
+      const result = await marcarPago(pagamento.id)
       if (result?.error) error('Erro ao marcar como pago')
       else success('Pagamento confirmado!')
     })
@@ -35,7 +33,7 @@ function PaymentItem({ pagamento, membroId }: PaymentItemProps) {
 
   function handleDesfazer() {
     startTransition(async () => {
-      const result = await desfazerPagamento(pagamento.id, membroId, pagamento.mes_referencia)
+      const result = await desfazerPagamento(pagamento.id, pagamento.mes_referencia)
       if (result?.error) error('Erro ao desfazer pagamento')
       else success('Pagamento revertido')
     })
@@ -49,7 +47,7 @@ function PaymentItem({ pagamento, membroId }: PaymentItemProps) {
     }
 
     startTransition(async () => {
-      const result = await atualizarValorPagamento(pagamento.id, membroId, valorNum)
+      const result = await atualizarValorPagamento(pagamento.id, valorNum)
       if (result?.error) {
         error('Erro ao atualizar valor')
       } else {
@@ -160,7 +158,7 @@ function PaymentItem({ pagamento, membroId }: PaymentItemProps) {
   )
 }
 
-export function PaymentHistory({ pagamentos, membroId }: PaymentHistoryProps) {
+export function PaymentHistory({ pagamentos }: PaymentHistoryProps) {
   if (pagamentos.length === 0) {
     return (
       <div className="text-center py-8">
@@ -175,7 +173,6 @@ export function PaymentHistory({ pagamentos, membroId }: PaymentHistoryProps) {
         <PaymentItem
           key={pagamento.id}
           pagamento={pagamento}
-          membroId={membroId}
         />
       ))}
     </div>

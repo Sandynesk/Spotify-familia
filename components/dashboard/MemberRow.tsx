@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useTransition } from 'react'
 import Link from 'next/link'
 import { ChevronRight, CheckCircle } from 'lucide-react'
 import { Avatar } from '@/components/ui/Avatar'
@@ -18,7 +18,6 @@ interface MemberRowProps {
 export function MemberRow({ membro, pagamento }: MemberRowProps) {
   const { success, error } = useToast()
   const [pending, startTransition] = useTransition()
-  const [swipedOpen, setSwipedOpen] = useState(false)
 
   const status = pagamento?.status ?? 'pendente'
 
@@ -28,7 +27,7 @@ export function MemberRow({ membro, pagamento }: MemberRowProps) {
     if (!pagamento) return
 
     startTransition(async () => {
-      const result = await marcarPago(pagamento.id, membro.id)
+      const result = await marcarPago(pagamento.id)
       if (result?.error) error('Erro ao marcar como pago')
       else success(`${membro.nome} marcado como pago!`)
     })

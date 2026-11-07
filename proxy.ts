@@ -14,7 +14,7 @@ export async function proxy(request: NextRequest) {
             return request.cookies.getAll()
           },
           setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
             supabaseResponse = NextResponse.next({
               request,
             })
@@ -29,8 +29,9 @@ export async function proxy(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     const { pathname } = request.nextUrl
 
-    const isPublicRoute = ['/', '/login', '/cadastro'].includes(pathname)
-    const isProtectedRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/membros') || pathname.startsWith('/historico')
+    const isProtectedRoute = ['/dashboard', '/membros', '/historico', '/visao-geral'].some(
+      route => pathname === route || pathname.startsWith(`${route}/`)
+    )
 
     // Se tentar acessar rota protegida sem estar logado
     if (isProtectedRoute && !user) {

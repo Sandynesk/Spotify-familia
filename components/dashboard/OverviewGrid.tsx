@@ -26,12 +26,12 @@ const STATUS_LABELS: Record<PagamentoStatus, string> = {
   atrasado: 'Atrasado',
 }
 
-function getStatusColor(status: string): string {
-  return STATUS_COLORS[status as PagamentoStatus] || 'bg-[#535353]'
+function getStatusColor(status: PagamentoStatus | undefined): string {
+  return status ? STATUS_COLORS[status] : 'bg-[#282828]'
 }
 
-function getStatusLabel(status: string): string {
-  return STATUS_LABELS[status as PagamentoStatus] || status
+function getStatusLabel(status: PagamentoStatus | undefined): string {
+  return status ? STATUS_LABELS[status] : 'Sem cobrança'
 }
 
 export function OverviewGrid({ membros, pagamentos, ano }: OverviewGridProps) {
@@ -49,8 +49,8 @@ export function OverviewGrid({ membros, pagamentos, ano }: OverviewGridProps) {
         const pagamento = map.get(`${membro.id}-${mesRef}`)
         return {
           mes: mesRef,
-          status: pagamento?.status || 'pendente',
-          valor: pagamento?.valor || membro.valor_mensal,
+          status: pagamento?.status,
+          valor: Number(pagamento?.valor ?? membro.valor_mensal),
           pagamentoId: pagamento?.id,
         }
       })
@@ -77,6 +77,10 @@ export function OverviewGrid({ membros, pagamentos, ano }: OverviewGridProps) {
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded-sm bg-[#FF4444]" />
           <span>Atrasado</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-[#282828]" />
+          <span>Sem cobrança</span>
         </div>
       </div>
 
@@ -109,7 +113,7 @@ export function OverviewGrid({ membros, pagamentos, ano }: OverviewGridProps) {
                     <div>
                       <p className="text-sm font-medium text-white">{membro.nome}</p>
                       <p className="text-xs text-[#B3B3B3]">
-                        R$ {membro.valor_mensal.toFixed(2)}
+                        R$ {Number(membro.valor_mensal).toFixed(2)}
                       </p>
                     </div>
                   </div>

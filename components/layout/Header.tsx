@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { LogOut } from 'lucide-react'
 import { SpotifyLogo } from '@/components/ui/SpotifyLogo'
@@ -13,25 +12,6 @@ interface HeaderProps {
 
 export function Header({ title, showBack }: HeaderProps) {
   const router = useRouter()
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-
-  useEffect(() => {
-    checkAuthStatus()
-  }, [])
-
-  async function checkAuthStatus() {
-    try {
-      const supabase = createClient()
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      setIsAuthenticated(!!session)
-    } catch (error) {
-      console.error('Auth check failed:', error)
-      setIsAuthenticated(false)
-    }
-  }
-
   async function handleLogout() {
     const supabase = createClient()
     await supabase.auth.signOut()
@@ -61,7 +41,7 @@ export function Header({ title, showBack }: HeaderProps) {
           </span>
         </div>
 
-        {!showBack && isAuthenticated ? (
+        {!showBack && (
           <button
             onClick={handleLogout}
             className="text-[#B3B3B3] hover:text-white transition-colors p-1"
@@ -69,15 +49,7 @@ export function Header({ title, showBack }: HeaderProps) {
           >
             <LogOut className="w-5 h-5" strokeWidth={1.5} />
           </button>
-        ) : !showBack && !isAuthenticated ? (
-          <a
-            href="/login"
-            className="text-[#1DB954] hover:text-white transition-colors p-1 font-medium"
-            aria-label="Entrar"
-          >
-            Entrar
-          </a>
-        ) : null}
+        )}
       </div>
     </header>
   )

@@ -31,13 +31,25 @@ interface ChartData {
   atrasado: number
 }
 
-function CustomTooltip({ active, payload, label }: any) {
+interface TooltipEntry {
+  name?: string
+  value?: number
+  color?: string
+}
+
+interface CustomTooltipProps {
+  active?: boolean
+  payload?: TooltipEntry[]
+  label?: string
+}
+
+function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload) return null
 
   return (
     <div className="bg-[#282828] border border-white/10 rounded-lg p-3 shadow-xl">
       <p className="text-white font-medium mb-2">{label}</p>
-      {payload.map((entry: any) => (
+      {payload.map(entry => (
         <div key={entry.name} className="flex items-center gap-2 text-sm">
           <div
             className="w-2.5 h-2.5 rounded-full"
@@ -45,7 +57,7 @@ function CustomTooltip({ active, payload, label }: any) {
           />
           <span className="text-[#B3B3B3]">{entry.name}:</span>
           <span className="text-white font-medium">
-            R$ {entry.value.toFixed(2)}
+            R$ {Number(entry.value ?? 0).toFixed(2)}
           </span>
         </div>
       ))}

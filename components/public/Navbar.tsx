@@ -2,18 +2,12 @@
 import Link from 'next/link'
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { SpotifyLogo } from '@/components/ui/SpotifyLogo'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Menu, X } from 'lucide-react'
 
 export function Navbar() {
   const { scrollY } = useScroll()
-  const [isMounted, setIsMounted] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
-  
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsMounted(true)
-  }, [])
 
   const backgroundColor = useTransform(
     scrollY,
@@ -30,7 +24,7 @@ export function Navbar() {
 
   return (
     <MotionNav
-      style={isMounted ? { backgroundColor, backdropFilter } : { backgroundColor: 'rgba(18, 18, 18, 0)', backdropFilter: 'blur(0px)' }}
+      style={{ backgroundColor, backdropFilter }}
       className="fixed top-0 left-0 right-0 z-50 transition-colors duration-300 border-b border-white/5"
     >
       <div className="max-w-6xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
