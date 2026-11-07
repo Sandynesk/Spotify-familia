@@ -11,6 +11,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
+import { formatCurrency } from '@/lib/utils/currency'
 import type { Pagamento } from '@/types/database'
 
 interface OverviewChartProps {
@@ -21,7 +22,7 @@ interface OverviewChartProps {
 
 const MESES = [
   'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-  'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+  'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
 ]
 
 interface ChartData {
@@ -44,23 +45,27 @@ interface CustomTooltipProps {
 }
 
 function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
-  if (!active || !payload) return null
+  if (!active || !payload || !payload.length) return null
 
   return (
-    <div className="bg-[#282828] border border-white/10 rounded-lg p-3 shadow-xl">
-      <p className="text-white font-medium mb-2">{label}</p>
-      {payload.map(entry => (
-        <div key={entry.name} className="flex items-center gap-2 text-sm">
-          <div
-            className="w-2.5 h-2.5 rounded-full"
-            style={{ backgroundColor: entry.color }}
-          />
-          <span className="text-[#B3B3B3]">{entry.name}:</span>
-          <span className="text-white font-medium">
-            R$ {Number(entry.value ?? 0).toFixed(2)}
-          </span>
-        </div>
-      ))}
+    <div className="bg-app-surface border border-app-line rounded-[var(--radius-app-sm)] p-3 shadow-2xl font-app">
+      <p className="text-app-text font-semibold text-xs mb-2">{label}</p>
+      <div className="space-y-1.5 min-w-[140px]">
+        {payload.map(entry => (
+          <div key={entry.name} className="flex items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-1.5">
+              <span
+                className="w-2 h-2 rounded-full flex-shrink-0"
+                style={{ backgroundColor: entry.color }}
+              />
+              <span className="text-app-muted">{entry.name}:</span>
+            </div>
+            <span className="text-app-text font-semibold tabular-nums">
+              {formatCurrency(Number(entry.value ?? 0))}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -100,58 +105,80 @@ export function OverviewChart({ pagamentos, ano }: OverviewChartProps) {
   const totalAtrasado = chartData.reduce((acc, d) => acc + d.atrasado, 0)
 
   return (
-    <div className="space-y-4">
-      {/* Resumo financeiro */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-[#1DB954]/10 border border-[#1DB954]/20 rounded-xl p-4">
-          <p className="text-xs text-[#1DB954] font-medium uppercase tracking-wider mb-1">
-            Recebido
-          </p>
-          <p className="text-xl font-bold text-white">
-            R$ {totalRecebido.toFixed(2)}
-          </p>
-        </div>
-        <div className="bg-[#FFA500]/10 border border-[#FFA500]/20 rounded-xl p-4">
-          <p className="text-xs text-[#FFA500] font-medium uppercase tracking-wider mb-1">
-            Pendente
-          </p>
-          <p className="text-xl font-bold text-white">
-            R$ {totalPendente.toFixed(2)}
-          </p>
-        </div>
-        <div className="bg-[#FF4444]/10 border border-[#FF4444]/20 rounded-xl p-4">
-          <p className="text-xs text-[#FF4444] font-medium uppercase tracking-wider mb-1">
-            Atrasado
-          </p>
-          <p className="text-xl font-bold text-white">
-            R$ {totalAtrasado.toFixed(2)}
-          </p>
+    <div className="space-y-3">
+      {/* Faixa compacta com os 3 totais do ano */}
+      <div className="rounded-[var(--radius-app)] border border-app-line bg-app-surface px-4 py-3 sm:px-6">
+        <div className="grid grid-cols-3 divide-x divide-app-line text-center">
+          <div className="px-2">
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <span className="w-2 h-2 rounded-full bg-app-accent" />
+              <span className="text-xs font-medium text-app-muted">Recebido</span>
+            </div>
+            <p className="text-base sm:text-lg font-bold text-app-accent tabular-nums">
+              {formatCurrency(totalRecebido)}
+            </p>
+          </div>
+
+          <div className="px-2">
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <span className="w-2 h-2 rounded-full bg-app-warn" />
+              <span className="text-xs font-medium text-app-muted">Pendente</span>
+            </div>
+            <p className="text-base sm:text-lg font-bold text-app-warn tabular-nums">
+              {formatCurrency(totalPendente)}
+            </p>
+          </div>
+
+          <div className="px-2">
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <span className="w-2 h-2 rounded-full bg-app-danger" />
+              <span className="text-xs font-medium text-app-muted">Atrasado</span>
+            </div>
+            <p className="text-base sm:text-lg font-bold text-app-danger tabular-nums">
+              {formatCurrency(totalAtrasado)}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Gráfico */}
-      <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-4">
-        <h3 className="text-sm font-medium text-[#B3B3B3] mb-4">
-          Faturamento Mensal - {ano}
-        </h3>
-        <ResponsiveContainer width="100%" height={320}>
-          <BarChart data={chartData} barGap={2} barCategoryGap="15%">
-            <CartesianGrid strokeDasharray="3 3" stroke="#282828" />
+      {/* Gráfico de barras */}
+      <div className="rounded-[var(--radius-app)] border border-app-line bg-app-surface p-4 sm:p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-app-text">
+            Faturamento Mensal — {ano}
+          </h3>
+          <span className="text-xs text-app-subtle">
+            Valores consolidados por mês
+          </span>
+        </div>
+        <ResponsiveContainer width="100%" height={280}>
+          <BarChart data={chartData} barGap={2} barCategoryGap="16%">
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="rgba(255, 255, 255, 0.05)"
+              vertical={false}
+            />
             <XAxis
               dataKey="mes"
-              tick={{ fill: '#B3B3B3', fontSize: 12 }}
-              axisLine={{ stroke: '#282828' }}
+              tick={{ fill: '#8e8e93', fontSize: 12 }}
+              axisLine={{ stroke: 'rgba(255, 255, 255, 0.08)' }}
               tickLine={false}
             />
             <YAxis
-              tick={{ fill: '#B3B3B3', fontSize: 12 }}
+              tick={{ fill: '#8e8e93', fontSize: 12 }}
               axisLine={false}
               tickLine={false}
               tickFormatter={(value) => `R$ ${value}`}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip
+              content={<CustomTooltip />}
+              cursor={{ fill: 'rgba(255, 255, 255, 0.03)' }}
+            />
             <Legend
-              wrapperStyle={{ fontSize: '12px', color: '#B3B3B3' }}
+              wrapperStyle={{ fontSize: '12px', paddingTop: '12px' }}
+              formatter={(value) => (
+                <span className="text-xs text-app-muted">{value}</span>
+              )}
             />
             <Bar
               dataKey="recebido"
@@ -162,13 +189,13 @@ export function OverviewChart({ pagamentos, ano }: OverviewChartProps) {
             <Bar
               dataKey="pendente"
               name="Pendente"
-              fill="#FFA500"
+              fill="#ff9f0a"
               radius={[4, 4, 0, 0]}
             />
             <Bar
               dataKey="atrasado"
               name="Atrasado"
-              fill="#FF4444"
+              fill="#ff453a"
               radius={[4, 4, 0, 0]}
             />
           </BarChart>

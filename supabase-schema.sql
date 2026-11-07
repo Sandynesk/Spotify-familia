@@ -33,7 +33,16 @@ CREATE TABLE IF NOT EXISTS pagamentos (
   CONSTRAINT pagamentos_membro_mes_unique UNIQUE (membro_id, mes_referencia)
 );
 
+-- Configurações do usuário (valor do plano e chave PIX do relatório)
+CREATE TABLE IF NOT EXISTS configuracoes (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  valor_plano DECIMAL(10,2),
+  chave_pix TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Habilitar RLS
+ALTER TABLE configuracoes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE membros ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pagamentos ENABLE ROW LEVEL SECURITY;
 
@@ -46,6 +55,10 @@ CREATE POLICY "owner_all_pagamentos" ON pagamentos
   FOR ALL USING (
     membro_id IN (SELECT id FROM membros WHERE user_id = auth.uid())
   );
+
+CREATE POLICY "owner_all_configuracoes" ON configuracoes
+  FOR ALL USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
 
 -- Índices de performance
 CREATE INDEX IF NOT EXISTS idx_pagamentos_membro ON pagamentos(membro_id);
@@ -64,5 +77,11 @@ $$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS membros_updated_at ON membros;
 CREATE TRIGGER membros_updated_at
   BEFORE UPDATE ON membros
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at();
+
+DROP TRIGGER IF EXISTS configuracoes_updated_at ON configuracoes;
+CREATE TRIGGER configuracoes_updated_at
+  BEFORE UPDATE ON configuracoes
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at();

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Loader2 } from 'lucide-react'
+import { Sheet } from '@/components/ui/Sheet'
 import { deletarMembro } from '@/lib/actions/membros'
 import { useToast } from '@/components/ui/Toast'
 
@@ -11,67 +12,71 @@ interface DeleteButtonProps {
 }
 
 export default function DeleteButton({ membroId, nome }: DeleteButtonProps) {
-  const [showConfirm, setShowConfirm] = useState(false)
+  const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
   const { error } = useToast()
 
   function handleDelete() {
     startTransition(async () => {
       const result = await deletarMembro(membroId)
-      if (result?.error) error('Erro ao deletar membro')
+      if (result && 'error' in result && result.error) {
+        error('Erro ao deletar membro')
+      }
     })
   }
 
   return (
     <>
       <button
-        onClick={() => setShowConfirm(true)}
-        className="w-9 h-9 bg-[#282828] hover:bg-[rgba(226,33,52,0.15)] rounded-full flex items-center justify-center transition-colors"
-        aria-label="Deletar membro"
+        type="button"
+        onClick={() => setOpen(true)}
+        className="min-w-[44px] min-h-[44px] rounded-full border border-app-danger/20 bg-app-danger/10 hover:bg-app-danger/20 text-app-danger flex items-center justify-center transition-colors"
+        aria-label={`Excluir ${nome}`}
+        title="Excluir membro"
       >
-        <Trash2 className="w-4 h-4 text-[#E22134]" />
+        <Trash2 className="w-4 h-4 text-app-danger" />
       </button>
 
-      {/* Confirm dialog */}
-      {showConfirm && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-6 sm:pb-0">
-          {/* Overlay */}
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowConfirm(false)}
-          />
-          <div className="relative bg-[#181818] rounded-xl p-6 w-full max-w-sm shadow-2xl z-10">
-            <div className="w-12 h-12 bg-[rgba(226,33,52,0.1)] rounded-full flex items-center justify-center mx-auto mb-4">
-              <Trash2 className="w-6 h-6 text-[#E22134]" />
-            </div>
-            <h3 className="text-white font-bold text-lg text-center mb-2">
-              Remover membro?
-            </h3>
-            <p className="text-[#B3B3B3] text-sm text-center mb-6 leading-relaxed">
-              <span className="text-white">{nome}</span> e todo o histórico de pagamentos serão removidos permanentemente.
+      <Sheet
+        open={open}
+        onClose={() => !pending && setOpen(false)}
+        title={`Excluir ${nome}?`}
+        description={`Esta ação não pode ser desfeita. ${nome} e todo o seu histórico de cobranças e pagamentos serão apagados permanentemente.`}
+      >
+        <div className="mt-4 space-y-4">
+          <div className="rounded-[var(--radius-app-sm)] border border-app-danger/20 bg-app-danger/10 p-4">
+            <p className="text-xs text-app-danger leading-relaxed">
+              <strong>Atenção:</strong> Se você quer apenas remover {nome} do plano mantendo os registros de meses anteriores, use a opção <strong>Arquivar</strong>.
             </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowConfirm(false)}
-                disabled={pending}
-                className="flex-1 py-2.5 bg-[#282828] hover:bg-[#3E3E3E] text-white text-sm font-medium rounded-full transition-colors disabled:opacity-50"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={pending}
-                className="flex-1 py-2.5 bg-[#E22134] hover:bg-[#c51e2b] text-white text-sm font-bold rounded-full transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {pending
-                  ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                  : 'Remover'
-                }
-              </button>
-            </div>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              disabled={pending}
+              className="flex-1 min-h-[48px] rounded-full border border-app-line bg-app-elevated text-app-text font-medium hover:bg-app-surface transition-colors disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={pending}
+              className="flex-[2] min-h-[48px] rounded-full bg-app-danger hover:opacity-90 text-white font-semibold transition-all duration-200 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {pending ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <span>Excluindo...</span>
+                </>
+              ) : (
+                <span>Excluir definitivamente</span>
+              )}
+            </button>
           </div>
         </div>
-      )}
+      </Sheet>
     </>
   )
 }

@@ -3,6 +3,9 @@ import { BottomNav } from '@/components/layout/BottomNav'
 import { FAB } from '@/components/layout/FAB'
 import { getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import { Geist } from 'next/font/google'
+
+const geist = Geist({ subsets: ['latin'], variable: '--font-geist', display: 'swap' })
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession()
@@ -13,7 +16,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   return (
-    <div className="min-h-screen bg-[#121212]">
+    <div className={`${geist.variable} font-app min-h-dvh bg-app-bg text-app-text antialiased`}>
       {/* Desktop sidebar */}
       <Sidebar />
 

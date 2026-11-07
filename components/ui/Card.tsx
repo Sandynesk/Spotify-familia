@@ -3,21 +3,12 @@ import React from 'react'
 interface CardProps {
   children: React.ReactNode
   className?: string
-  hover?: boolean
-  onClick?: () => void
 }
 
-export function Card({ children, className = '', hover = false, onClick }: CardProps) {
+/** Superfície padrão das telas internas. Para itens clicáveis, use <Link>/<button> com estas mesmas classes. */
+export function Card({ children, className = '' }: CardProps) {
   return (
-    <div
-      className={`
-        bg-[#181818] rounded-lg p-4
-        transition-colors duration-200
-        ${hover ? 'cursor-pointer hover:bg-[#282828]' : ''}
-        ${className}
-      `}
-      onClick={onClick}
-    >
+    <div className={`rounded-[var(--radius-app)] border border-app-line bg-app-surface p-4 ${className}`}>
       {children}
     </div>
   )

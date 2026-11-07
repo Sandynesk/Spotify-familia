@@ -5,10 +5,10 @@ interface BadgeProps {
   className?: string
 }
 
-const statusConfig: Record<PagamentoStatus, { label: string; bg: string; color: string }> = {
-  pago:     { label: 'Pago',     bg: 'rgba(29,185,84,0.15)',  color: '#1DB954' },
-  pendente: { label: 'Pendente', bg: 'rgba(245,155,35,0.15)', color: '#F59B23' },
-  atrasado: { label: 'Atrasado', bg: 'rgba(226,33,52,0.15)',  color: '#E22134' },
+const statusConfig: Record<PagamentoStatus, { label: string; className: string }> = {
+  pago:     { label: 'Pago',     className: 'bg-app-accent/15 text-app-accent' },
+  pendente: { label: 'Pendente', className: 'bg-app-warn/15 text-app-warn' },
+  atrasado: { label: 'Atrasado', className: 'bg-app-danger/15 text-app-danger' },
 }
 
 export function Badge({ status, className = '' }: BadgeProps) {
@@ -16,15 +16,9 @@ export function Badge({ status, className = '' }: BadgeProps) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-600 ${className}`}
-      style={{ backgroundColor: config.bg, color: config.color }}
-      role="status"
-      aria-label={`Status: ${config.label}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${config.className} ${className}`}
     >
-      <span
-        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-        style={{ backgroundColor: config.color }}
-      />
+      <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-current" aria-hidden />
       {config.label}
     </span>
   )

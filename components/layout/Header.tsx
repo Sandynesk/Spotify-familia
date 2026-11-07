@@ -1,7 +1,8 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { LogOut } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
+import { ChevronLeft, LogOut, Settings } from 'lucide-react'
 import { SpotifyLogo } from '@/components/ui/SpotifyLogo'
 import { createClient } from '@/lib/supabase/client'
 
@@ -12,44 +13,60 @@ interface HeaderProps {
 
 export function Header({ title, showBack }: HeaderProps) {
   const router = useRouter()
+  const pathname = usePathname()
+
   async function handleLogout() {
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.push('/')
+    router.push('/login')
     router.refresh()
   }
 
   return (
-    <header className="sticky top-0 z-20 bg-[#121212]/90 backdrop-blur-md border-b border-white/5 lg:hidden">
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-2">
+    <header className="sticky top-0 z-20 border-b border-app-line bg-app-bg/80 backdrop-blur-md lg:hidden">
+      <div className="flex h-14 items-center justify-between px-3">
+        {/* Lado esquerdo: voltar ou logo + título */}
+        <div className="flex min-w-0 items-center gap-2.5">
           {showBack ? (
             <button
+              type="button"
               onClick={() => router.back()}
-              className="text-[#B3B3B3] hover:text-white transition-colors p-1"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-app-muted transition-colors hover:bg-app-elevated hover:text-app-text"
               aria-label="Voltar"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
+              <ChevronLeft className="h-6 w-6" strokeWidth={2} />
             </button>
           ) : (
-            <SpotifyLogo size={28} color="#1DB954" />
+            <div className="flex h-11 w-11 items-center justify-center">
+              <SpotifyLogo size={28} color="#1DB954" />
+            </div>
           )}
-          <span className="font-bold text-white text-2xl tracking-[-0.5px]">
+          <span className="truncate text-xl font-semibold tracking-tight text-app-text">
             {title || 'SpotiFamília'}
           </span>
         </div>
 
-        {!showBack && (
+        {/* Lado direito: configurações + sair */}
+        <div className="flex items-center gap-1">
+          {pathname !== '/configuracoes' && (
+            <Link
+              href="/configuracoes"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-app-muted transition-colors hover:bg-app-elevated hover:text-app-text"
+              aria-label="Configurações"
+            >
+              <Settings className="h-5 w-5" strokeWidth={1.75} />
+            </Link>
+          )}
+
           <button
+            type="button"
             onClick={handleLogout}
-            className="text-[#B3B3B3] hover:text-white transition-colors p-1"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-app-muted transition-colors hover:bg-app-elevated hover:text-app-text"
             aria-label="Sair da conta"
           >
-            <LogOut className="w-5 h-5" strokeWidth={1.5} />
+            <LogOut className="h-5 w-5" strokeWidth={1.75} />
           </button>
-        )}
+        </div>
       </div>
     </header>
   )

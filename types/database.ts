@@ -45,3 +45,32 @@ export interface DashboardSummary {
   totalAtrasado: number
   progresso: number // 0-100
 }
+
+export interface Configuracoes {
+  user_id: string
+  valor_plano: number | null
+  chave_pix: string | null
+  updated_at: string
+}
+
+/** Membro com cobranças em aberto até o mês atual (inclusive). */
+export interface Devedor {
+  membro: Membro
+  /** mes_referencia ('YYYY-MM-01') de cada cobrança não paga, em ordem crescente */
+  meses: string[]
+  total: number
+  /** true se alguma cobrança é de mês anterior ao atual */
+  temAtraso: boolean
+}
+
+/** Comparação entre o que o plano custa e o que os membros pagam no mês atual. */
+export interface ResumoCusto {
+  /** null quando o usuário ainda não configurou o valor do plano */
+  valorPlano: number | null
+  /** soma das cobranças do mês atual de todos os membros ativos */
+  previstoMes: number
+  /** soma das cobranças do mês atual já pagas */
+  arrecadadoMes: number
+  /** previstoMes - valorPlano (positivo = sobra, negativo = você cobre a diferença); null sem valorPlano */
+  diferenca: number | null
+}

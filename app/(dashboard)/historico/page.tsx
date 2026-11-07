@@ -9,6 +9,8 @@ import { formatCurrency } from '@/lib/utils/currency'
 import { garantirPagamentos } from '@/lib/utils/payments'
 import type { Membro, PagamentoStatus } from '@/types/database'
 
+export const dynamic = 'force-dynamic'
+
 async function HistoricoContent() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -33,13 +35,16 @@ async function HistoricoContent() {
 
   if (pagamentos.length === 0) {
     return (
-      <div className="text-center py-16">
-        <p className="text-[#535353] text-sm">Nenhum pagamento ainda</p>
+      <div className="rounded-[var(--radius-app)] border border-app-line bg-app-surface py-12 px-4 text-center">
+        <p className="text-sm font-medium text-app-text">Nenhum pagamento registrado ainda</p>
+        <p className="text-xs text-app-muted mt-1">
+          Os pagamentos são gerados automaticamente a cada mês para os membros ativos.
+        </p>
       </div>
     )
   }
 
-  // Group by month
+  // Agrupar por mês
   const grouped = pagamentos.reduce<Record<string, typeof pagamentos>>((acc, p) => {
     const key = p.mes_referencia
     if (!acc[key]) acc[key] = []
@@ -49,33 +54,60 @@ async function HistoricoContent() {
 
   return (
     <div className="space-y-6">
-      {Object.entries(grouped).map(([mes, pags]) => (
-        <section key={mes}>
-          <h2 className="text-[#B3B3B3] text-xs font-semibold uppercase tracking-wider mb-3 capitalize">
-            {formatShortMonthYear(mes)}
-          </h2>
-          <div className="bg-[#181818] rounded-lg overflow-hidden">
-            {pags.map((p, i) => {
-              const membro = p.membros as Pick<Membro, 'nome' | 'cor_avatar'> | null
-              return (
-                <div key={p.id} className={`flex items-center gap-3 px-4 py-3 ${i < pags.length - 1 ? 'border-b border-white/5' : ''}`}>
-                  <Avatar nome={membro?.nome || '?'} cor={membro?.cor_avatar} size="sm" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm font-medium truncate">{membro?.nome || 'Membro'}</p>
-                    {p.data_pagamento && (
-                      <p className="text-[#535353] text-xs">pago em {formatDateTime(p.data_pagamento)}</p>
-                    )}
+      {Object.entries(grouped).map(([mes, pags]) => {
+        const totalPagoMes = pags
+          .filter(p => p.status === 'pago')
+          .reduce((acc, p) => acc + Number(p.valor), 0)
+
+        return (
+          <section key={mes} className="relative">
+            {/* Cabeçalho de mês fixo (sticky) ao rolar */}
+            <div className="sticky top-14 lg:top-0 z-10 -mx-4 px-4 lg:-mx-8 lg:px-8 py-2.5 bg-app-bg/90 backdrop-blur-md border-b border-app-line/40 flex items-center justify-between">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-app-muted capitalize">
+                {formatShortMonthYear(mes)}
+              </h2>
+              <span className="text-xs font-medium text-app-muted tabular-nums">
+                Total pago: <span className="font-semibold text-app-accent">{formatCurrency(totalPagoMes)}</span>
+              </span>
+            </div>
+
+            {/* Linhas compactas */}
+            <div className="mt-2.5 rounded-[var(--radius-app)] border border-app-line bg-app-surface divide-y divide-app-line overflow-hidden">
+              {pags.map(p => {
+                const membro = p.membros as Pick<Membro, 'nome' | 'cor_avatar'> | null
+                return (
+                  <div
+                    key={p.id}
+                    className="flex items-center gap-3 px-3.5 py-2.5 sm:px-4 sm:py-3 transition-colors hover:bg-app-elevated/40"
+                  >
+                    <Avatar nome={membro?.nome || '?'} cor={membro?.cor_avatar} size="sm" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-app-text truncate">
+                        {membro?.nome || 'Membro'}
+                      </p>
+                      {p.data_pagamento ? (
+                        <p className="text-xs text-app-subtle">
+                          pago em {formatDateTime(p.data_pagamento)}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-app-subtle capitalize">
+                          {p.status}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2.5 flex-shrink-0">
+                      <span className="text-sm font-semibold text-app-text tabular-nums">
+                        {formatCurrency(Number(p.valor))}
+                      </span>
+                      <Badge status={p.status} />
+                    </div>
                   </div>
-                  <span className="text-white text-sm font-semibold flex-shrink-0">
-                    {formatCurrency(Number(p.valor))}
-                  </span>
-                  <Badge status={p.status} />
-                </div>
-              )
-            })}
-          </div>
-        </section>
-      ))}
+                )
+              })}
+            </div>
+          </section>
+        )
+      })}
     </div>
   )
 }
@@ -84,24 +116,34 @@ export default function HistoricoPage() {
   return (
     <>
       <Header title="Histórico" />
-      <div className="px-4 py-5 lg:px-8 lg:py-8">
-        <div className="mb-6">
-          <h1 className="text-xl font-bold text-white lg:text-2xl">Histórico</h1>
-          <p className="text-[#B3B3B3] text-xs mt-0.5">Todos os pagamentos registrados</p>
+      <div className="px-4 py-5 lg:px-8 lg:py-8 max-w-3xl">
+        <div className="hidden lg:block mb-8">
+          <h1 className="text-3xl font-semibold tracking-tight text-app-text">Histórico</h1>
+          <p className="text-app-muted text-sm mt-1">Todos os pagamentos registrados</p>
         </div>
 
         <Suspense
           fallback={
-            <div className="space-y-2">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3 p-4 bg-[#181818] rounded-lg">
-                  <Skeleton className="w-8 h-8" rounded />
-                  <div className="flex-1 space-y-2">
+            <div className="space-y-6">
+              {Array.from({ length: 3 }).map((_, groupIdx) => (
+                <div key={groupIdx} className="space-y-2">
+                  <div className="flex justify-between items-center py-2">
+                    <Skeleton className="h-4 w-24" />
                     <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-24" />
                   </div>
-                  <Skeleton className="h-4 w-16" />
-                  <Skeleton className="h-5 w-20 rounded-full" />
+                  <div className="rounded-[var(--radius-app)] border border-app-line bg-app-surface divide-y divide-app-line overflow-hidden">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="flex items-center gap-3 px-3.5 py-2.5 sm:px-4 sm:py-3">
+                        <Skeleton className="w-8 h-8 rounded-full" />
+                        <div className="flex-1 space-y-1.5">
+                          <Skeleton className="h-4 w-28" />
+                          <Skeleton className="h-3 w-20" />
+                        </div>
+                        <Skeleton className="h-4 w-16" />
+                        <Skeleton className="h-5 w-16 rounded-full" />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>

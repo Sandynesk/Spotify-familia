@@ -36,19 +36,19 @@ export function MemberRow({ membro, pagamento }: MemberRowProps) {
   return (
     <Link
       href={`/membros/${membro.id}`}
-      className="group flex items-center gap-3 p-4 bg-[#181818] hover:bg-[#282828] rounded-lg transition-all duration-200"
+      className="group flex min-h-[44px] items-center gap-3 rounded-[var(--radius-app-sm)] border border-app-line bg-app-surface p-3.5 transition-colors hover:bg-app-elevated sm:p-4"
     >
       <Avatar nome={membro.nome} cor={membro.cor_avatar} size="md" />
 
-      <div className="flex-1 min-w-0">
-        <p className="text-white font-medium text-sm truncate">{membro.nome}</p>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-app-text">{membro.nome}</p>
         {membro.email && (
-          <p className="text-[#535353] text-xs truncate mt-0.5">{membro.email}</p>
+          <p className="mt-0.5 truncate text-xs text-app-muted">{membro.email}</p>
         )}
       </div>
 
-      <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-        <span className="text-white text-sm font-semibold">
+      <div className="flex flex-shrink-0 flex-col items-end gap-1.5">
+        <span className="text-sm font-semibold tabular-nums text-app-text">
           {formatCurrency(Number(pagamento ? pagamento.valor : membro.valor_mensal))}
         </span>
         <Badge status={status} />
@@ -58,25 +58,18 @@ export function MemberRow({ membro, pagamento }: MemberRowProps) {
         <button
           onClick={handleMarcarPago}
           disabled={pending}
-          className="
-            ml-1 flex-shrink-0 w-8 h-8 rounded-full
-            bg-[#1DB954]/10 hover:bg-[#1DB954]/20
-            flex items-center justify-center
-            transition-all duration-200 active:scale-95
-            disabled:opacity-50
-          "
+          className="ml-1 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-app-accent/15 text-app-accent transition-all duration-200 hover:bg-app-accent/25 active:scale-95 disabled:opacity-50"
           aria-label={`Marcar ${membro.nome} como pago`}
         >
-          {pending
-            ? <div className="w-3.5 h-3.5 border-2 border-[#1DB954]/40 border-t-[#1DB954] rounded-full animate-spin" />
-            : <CheckCircle className="w-4 h-4 text-[#1DB954]" />
-          }
+          {pending ? (
+            <div className="h-4 w-4 rounded-full border-2 border-app-accent/40 border-t-app-accent animate-spin" />
+          ) : (
+            <CheckCircle className="h-5 w-5 text-app-accent" />
+          )}
         </button>
       )}
 
-      <ChevronRight
-        className="w-4 h-4 text-[#535353] group-hover:text-[#B3B3B3] transition-colors flex-shrink-0"
-      />
+      <ChevronRight className="h-4 w-4 flex-shrink-0 text-app-subtle transition-colors group-hover:text-app-muted" />
     </Link>
   )
 }

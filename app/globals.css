@@ -29,6 +29,29 @@
 
   /* Animation */
   --ease-sp: cubic-bezier(0.3, 0, 0, 1);
+
+  /* ── App interno (dashboard, membros, visão geral, histórico, configurações) ──
+     Linguagem "keynote" alinhada à nova landing: preto puro, verde Spotify como
+     único destaque, tipografia Geist. Use SEMPRE estes tokens nas telas internas
+     (bg-app-bg, text-app-muted, border-app-line, font-app...), nunca hex soltos. */
+  --color-app-bg:           #000000;
+  --color-app-surface:      #111113;
+  --color-app-elevated:     #1c1c1f;
+  --color-app-line:         rgb(255 255 255 / 0.08);
+  --color-app-text:         #f5f5f7;
+  --color-app-muted:        #a1a1a6;
+  --color-app-subtle:       #8e8e93;
+  --color-app-accent:       #1DB954;
+  --color-app-accent-hover: #1ed760;
+  --color-app-warn:         #ff9f0a;
+  --color-app-danger:       #ff453a;
+
+  --font-app: var(--font-geist), system-ui, -apple-system, sans-serif;
+
+  --radius-app:    20px;
+  --radius-app-sm: 12px;
+
+  --ease-app: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -73,9 +96,9 @@ body {
 .skeleton {
   background: linear-gradient(
     90deg,
-    #282828 25%,
-    #333333 50%,
-    #282828 75%
+    #1c1c1f 25%,
+    #26262a 50%,
+    #1c1c1f 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
@@ -139,4 +162,24 @@ body {
 :focus-visible {
   outline: 2px solid #1DB954;
   outline-offset: 2px;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SHEET (components/ui/Sheet.tsx — <dialog> nativo)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+dialog.app-sheet::backdrop {
+  background: rgb(0 0 0 / 0.6);
+  backdrop-filter: blur(6px);
+}
+
+@keyframes sheet-up {
+  from { transform: translateY(24px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+dialog.app-sheet[open] { animation: sheet-up 220ms var(--ease-app); }
+
+@media (prefers-reduced-motion: reduce) {
+  dialog.app-sheet[open] { animation: none; }
+  .skeleton { animation: none; }
 }

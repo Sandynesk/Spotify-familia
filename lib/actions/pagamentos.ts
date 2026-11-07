@@ -5,7 +5,9 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getEffectiveStatus, getCurrentMonthISO } from '@/lib/utils/date'
 import { garantirPagamentos } from '@/lib/utils/payments'
-import type { Pagamento } from '@/types/database'
+import { calcularDevedores, calcularResumoCusto } from '@/lib/utils/devedores'
+import { getConfiguracoes } from '@/lib/actions/configuracoes'
+import type { Devedor, Pagamento } from '@/types/database'
 
 export async function getPagamentosMembro(membroId: string): Promise<Pagamento[]> {
   const supabase = await createClient()
@@ -117,11 +119,15 @@ export async function getDashboardData() {
       .eq('user_id', user.id)
       .eq('ativo', true)
 
+    const configuracoes = await getConfiguracoes()
+
     if (!membros || membros.length === 0) {
       return {
         membros: [],
         pagamentosMes: [],
         summary: { totalMembros: 0, totalAReceber: 0, totalPago: 0, totalAtrasado: 0, progresso: 0 },
+        devedores: [] as Devedor[],
+        custo: calcularResumoCusto([], mesAtual, configuracoes?.valor_plano ?? null),
       }
     }
 
@@ -132,6 +138,8 @@ export async function getDashboardData() {
       .select('*')
       .in('membro_id', membroIds)
       .eq('mes_referencia', mesAtual)
+
+    const { data: todosPagamentos } = await supabase.from('pagamentos').select('*').in('membro_id', membroIds)
 
     const pagamentosComStatus = (pagamentos || []).map(p => ({
       ...p,
@@ -162,6 +170,8 @@ export async function getDashboardData() {
         totalAtrasado,
         progresso,
       },
+      devedores: calcularDevedores(membros, todosPagamentos ?? [], mesAtual),
+      custo: calcularResumoCusto(pagamentosComStatus, mesAtual, configuracoes?.valor_plano ?? null),
     }
   } catch (error) {
     console.error('Error in getDashboardData:', error)
@@ -238,4 +248,23 @@ export async function atualizarValorPagamento(pagamentoId: string, novoValor: nu
 
   revalidatePath('/', 'layout')
   return { success: true }
+}
+
+/**
+ * Marca como pagas todas as cobranças NÃO pagas do membro com mes_referencia <= mês atual
+ * ("quitar tudo o que ele deve"). Retorna quantas cobranças foram quitadas.
+ */
+export async function quitarPendencias(
+  membroId: string,
+): Promise<{ success: true; quitadas: number } | { error: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Não autenticado' }
+  const { data: membro, error: membroError } = await supabase.from('membros').select('id').eq('id', membroId).eq('user_id', user.id).maybeSingle()
+  if (membroError) return { error: membroError.message }
+  if (!membro) return { error: 'Membro não encontrado' }
+  const { data, error } = await supabase.from('pagamentos').update({ status: 'pago', data_pagamento: new Date().toISOString() }).eq('membro_id', membroId).neq('status', 'pago').lte('mes_referencia', getCurrentMonthISO()).select('id')
+  if (error) return { error: error.message }
+  revalidatePath('/', 'layout')
+  return { success: true, quitadas: data?.length ?? 0 }
 }

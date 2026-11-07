@@ -17,27 +17,21 @@ const statusOrder: Record<PagamentoStatus, number> = {
 export function MemberList({ membros, pagamentosMes }: MemberListProps) {
   if (membros.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="flex flex-col items-center justify-center rounded-[var(--radius-app)] border border-app-line bg-app-surface px-4 py-12 text-center">
         {/* Illustration */}
-        <div className="relative w-24 h-24 mb-6">
-          <div className="w-24 h-24 bg-[#181818] rounded-full flex items-center justify-center">
-            <UserPlus className="w-10 h-10 text-[#535353]" />
-          </div>
-          <div className="absolute -top-1 -right-1 w-8 h-8 bg-[#1DB954] rounded-full flex items-center justify-center">
-            <span className="text-black font-bold text-lg">+</span>
+        <div className="relative mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-app-elevated">
+          <UserPlus className="h-7 w-7 text-app-muted" />
+          <div className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-app-accent text-xs font-bold text-black">
+            +
           </div>
         </div>
-        <h3 className="text-white font-semibold text-lg mb-2">Nenhum membro ainda</h3>
-        <p className="text-[#535353] text-sm max-w-xs leading-relaxed">
+        <h3 className="mb-1 text-base font-semibold text-app-text">Nenhum membro ainda</h3>
+        <p className="max-w-xs text-xs leading-relaxed text-app-muted">
           Adicione os membros do seu Plano Família para começar a controlar os pagamentos.
         </p>
         <Link
           href="/membros/novo"
-          className="
-            mt-6 px-6 py-2.5 bg-[#1DB954] hover:bg-[#1ed760]
-            text-black font-bold text-sm rounded-full
-            transition-all duration-200 active:scale-[0.97]
-          "
+          className="mt-5 inline-flex min-h-[44px] items-center justify-center rounded-full bg-app-accent px-5 py-2.5 text-xs font-semibold text-black transition-all hover:bg-app-accent-hover active:scale-[0.97]"
         >
           Adicionar primeiro membro
         </Link>
@@ -56,12 +50,12 @@ export function MemberList({ membros, pagamentosMes }: MemberListProps) {
   })
 
   return (
-    <section>
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-white font-semibold">Membros</h2>
+    <section className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-semibold tracking-tight text-app-text">Membros</h2>
         <Link
           href="/membros"
-          className="text-xs text-[#1DB954] hover:text-[#1ed760] transition-colors"
+          className="inline-flex min-h-[44px] items-center text-xs font-medium text-app-accent transition-colors hover:text-app-accent-hover"
         >
           Ver todos
         </Link>

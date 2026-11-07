@@ -1,4 +1,5 @@
 import React from 'react'
+import { AlertCircle } from 'lucide-react'
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string
@@ -11,41 +12,43 @@ export function Input({ label, error, hint, id, className = '', ...props }: Inpu
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label
-        htmlFor={inputId}
-        className="text-sm font-medium text-white"
-      >
-        {label}
-        {props.required && <span className="text-[#E22134] ml-1">*</span>}
-      </label>
+      <div className="flex items-center justify-between">
+        <label
+          htmlFor={inputId}
+          className="text-sm font-medium text-app-text"
+        >
+          {label}
+          {props.required && <span className="text-app-danger ml-1" aria-hidden="true">*</span>}
+        </label>
+        {hint && !error && (
+          <span className="text-xs text-app-subtle">{hint}</span>
+        )}
+      </div>
 
       <input
         id={inputId}
+        aria-invalid={error ? 'true' : undefined}
+        aria-describedby={error ? `${inputId}-error` : undefined}
         className={`
-          w-full px-4 py-3 rounded-[4px]
-          bg-[#3E3E3E] border-none
-          text-white text-sm placeholder:text-[#535353]
+          w-full px-4 py-3 min-h-[48px]
+          rounded-[var(--radius-app-sm)]
+          bg-app-elevated border border-app-line
+          text-app-text text-base placeholder:text-app-subtle
           outline-none
-          transition-all duration-200
-          focus:ring-2 focus:ring-[#1DB954] focus:ring-offset-0
+          transition-colors duration-200
+          focus:border-app-accent focus:ring-1 focus:ring-app-accent
           disabled:opacity-50 disabled:cursor-not-allowed
-          ${error ? 'ring-2 ring-[#E22134]' : ''}
+          ${error ? 'border-app-danger focus:border-app-danger focus:ring-app-danger' : ''}
           ${className}
         `}
         {...props}
       />
 
       {error && (
-        <p className="text-xs text-[#E22134] flex items-center gap-1">
-          <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-          </svg>
-          {error}
+        <p id={`${inputId}-error`} className="text-xs text-app-danger flex items-center gap-1.5 mt-0.5" role="alert">
+          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+          <span>{error}</span>
         </p>
-      )}
-
-      {hint && !error && (
-        <p className="text-xs text-[#535353]">{hint}</p>
       )}
     </div>
   )
@@ -54,31 +57,49 @@ export function Input({ label, error, hint, id, className = '', ...props }: Inpu
 interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label: string
   error?: string
+  hint?: string
 }
 
-export function Textarea({ label, error, id, className = '', ...props }: TextareaProps) {
+export function Textarea({ label, error, hint, id, className = '', ...props }: TextareaProps) {
   const inputId = id || label.toLowerCase().replace(/\s+/g, '-')
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={inputId} className="text-sm font-medium text-white">
-        {label}
-      </label>
+      <div className="flex items-center justify-between">
+        <label htmlFor={inputId} className="text-sm font-medium text-app-text">
+          {label}
+          {props.required && <span className="text-app-danger ml-1" aria-hidden="true">*</span>}
+        </label>
+        {hint && !error && (
+          <span className="text-xs text-app-subtle">{hint}</span>
+        )}
+      </div>
+
       <textarea
         id={inputId}
+        aria-invalid={error ? 'true' : undefined}
+        aria-describedby={error ? `${inputId}-error` : undefined}
         className={`
-          w-full px-4 py-3 rounded-[4px] resize-none
-          bg-[#3E3E3E] border-none
-          text-white text-sm placeholder:text-[#535353]
-          outline-none transition-all duration-200
-          focus:ring-2 focus:ring-[#1DB954]
-          ${error ? 'ring-2 ring-[#E22134]' : ''}
+          w-full px-4 py-3 min-h-[96px]
+          rounded-[var(--radius-app-sm)] resize-none
+          bg-app-elevated border border-app-line
+          text-app-text text-base placeholder:text-app-subtle
+          outline-none transition-colors duration-200
+          focus:border-app-accent focus:ring-1 focus:ring-app-accent
+          disabled:opacity-50 disabled:cursor-not-allowed
+          ${error ? 'border-app-danger focus:border-app-danger focus:ring-app-danger' : ''}
           ${className}
         `}
         rows={3}
         {...props}
       />
-      {error && <p className="text-xs text-[#E22134]">{error}</p>}
+
+      {error && (
+        <p id={`${inputId}-error`} className="text-xs text-app-danger flex items-center gap-1.5 mt-0.5" role="alert">
+          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+          <span>{error}</span>
+        </p>
+      )}
     </div>
   )
 }
