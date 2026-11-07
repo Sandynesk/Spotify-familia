@@ -28,5 +28,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
   }
 
+  console.log('keep-alive: Supabase consultado com sucesso')
   return NextResponse.json({ ok: true, at: new Date().toISOString() })
 }

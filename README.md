@@ -2,6 +2,8 @@
 
 Um aplicativo web moderno e premium para gerenciar o **Plano Família do Spotify**. Chega de planilhas confusas e conversas chatas sobre dinheiro. O SpotiFamília organiza membros, controla cobranças mensais e mantém um histórico claro de pagamentos.
 
+🔗 **Produção:** [spotifamilia.vercel.app](https://spotifamilia.vercel.app)
+
 ---
 
 ## 🎧 Visão Geral
@@ -33,21 +35,20 @@ O projeto foi construído com foco primário em **UI/UX premium**, replicando e 
 
 ```bash
 # 1. Clone o repositório e entre na pasta do projeto
-git clone <seu-repo>
-cd spotifamilia
+git clone https://github.com/Sandynesk/Spotify-familia.git
+cd Spotify-familia
 
 # 2. Instale as dependências
 npm install
 
-# 3. Configure as variáveis de ambiente
-cp .env.local.example .env.local
-# (Edite .env.local com suas credenciais do Supabase)
+# 3. Crie o arquivo .env.local com as credenciais do Supabase
+#    (veja "Configuração do Supabase" abaixo)
 
 # 4. Inicie o servidor em modo de desenvolvimento
 npm run dev
 ```
 
-Acesse o projeto em localmente: [http://localhost:3000](http://localhost:3000)
+Acesse o projeto localmente: [http://localhost:3000](http://localhost:3000)
 
 ---
 
@@ -68,6 +69,13 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=sua-anon-key-aqui
 ### 3. Criar as Tabelas do Banco
 1. No painel do Supabase, acesse o menu **SQL Editor**.
 2. Cole o conteúdo do arquivo [`supabase-schema.sql`](./supabase-schema.sql) existente na raiz do projeto e clique em **Run**. Isso criará as tabelas de membros e pagamentos, além das lógicas de segurança (Row Level Security).
+
+> **Banco criado antes de nov/2026?** Rode também [`supabase-migration-2026-11-pagamentos-unicos.sql`](./supabase-migration-2026-11-pagamentos-unicos.sql). Ele adiciona a regra "uma cobrança por membro por mês", necessária para o app criar automaticamente as cobranças dos meses que faltam (inclusive na virada do ano).
+
+### 4. Evitar que o projeto pause (plano gratuito)
+O Supabase gratuito pausa o projeto após 7 dias sem atividade. Para evitar isso, um **Vercel Cron** diário (configurado em [`vercel.json`](./vercel.json)) chama `/api/keep-alive`, que faz uma consulta mínima ao banco.
+
+Na Vercel, em **Settings → Environment Variables**, defina `CRON_SECRET` com um valor aleatório: assim só o cron da Vercel consegue chamar a rota. É possível conferir e executar o cron manualmente em **Settings → Cron Jobs**.
 
 ---
 
