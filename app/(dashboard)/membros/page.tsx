@@ -1,132 +1,67 @@
-import { Suspense } from 'react'
 import Link from 'next/link'
-import { Plus, Users } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
-import { MemberCard } from '@/components/members/MemberCard'
+import { Plus } from 'lucide-react'
 import { ArchivedMembers } from '@/components/members/ArchivedMembers'
-import { Skeleton } from '@/components/ui/Skeleton'
-import { getMembros, getMembrosArquivados } from '@/lib/actions/membros'
-import { getPagamentosMesAtual } from '@/lib/actions/pagamentos'
-import type { Membro, Pagamento, PagamentoStatus } from '@/types/database'
+import { MemberDirectory } from '@/components/members/MemberDirectory'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { getMembrosArquivados } from '@/lib/actions/membros'
+import { getMembrosComPagamentos } from '@/lib/actions/membros-extra'
+import { getCurrentMonthISO } from '@/lib/utils/date'
+import { calcularPontualidade } from '@/lib/domain/pontualidade'
+import type { Membro } from '@/types/database'
 
 export const dynamic = 'force-dynamic'
 
-async function MembersContent() {
-  const [membrosAtivos, pagamentos, membrosArquivadosRaw] = await Promise.all([
-    getMembros(),
-    getPagamentosMesAtual(),
+export default async function MembrosPage() {
+  const [lista, arquivados] = await Promise.all([
+    getMembrosComPagamentos(),
     getMembrosArquivados().catch(() => [] as Membro[]),
   ])
 
-  const membrosArquivados = membrosArquivadosRaw || []
+  if ('error' in lista) throw new Error(lista.error)
 
-  const pagMap = new Map(
-    (pagamentos as (Pagamento & { status: PagamentoStatus })[]).map(p => [p.membro_id, p])
-  )
+  const mesAtual = getCurrentMonthISO()
+  const itens = lista.membros
+    .map((membro) => {
+      const pagamentos = lista.pagamentos.filter((pagamento) => pagamento.membro_id === membro.id)
+      const pagamento = pagamentos.find((item) => item.mes_referencia === mesAtual) ?? null
+      return {
+        membro,
+        pagamento,
+        pontualidade: calcularPontualidade(membro, pagamentos),
+      }
+    })
+    .sort((a, b) => {
+      const ordem = { atrasado: 0, pendente: 1, pago: 2 }
+      const statusA = a.pagamento?.status ?? 'pendente'
+      const statusB = b.pagamento?.status ?? 'pendente'
+      return ordem[statusA] - ordem[statusB] || a.membro.nome.localeCompare(b.membro.nome, 'pt-BR')
+    })
 
-  const statusOrder: Record<PagamentoStatus, number> = { atrasado: 0, pendente: 1, pago: 2 }
-  const sorted = [...membrosAtivos].sort((a, b) => {
-    const sA = pagMap.get(a.id)?.status ?? 'pendente'
-    const sB = pagMap.get(b.id)?.status ?? 'pendente'
-    if (statusOrder[sA] !== statusOrder[sB]) {
-      return statusOrder[sA] - statusOrder[sB]
-    }
-    return a.nome.localeCompare(b.nome)
-  })
+  const vagasOcupadas = Math.min(itens.length + 1, 6)
+  const vagasPagas = itens.filter((item) => item.pagamento?.status === 'pago').length + 1
 
   return (
-    <div className="space-y-6">
-      {/* Lista de membros ativos */}
-      {sorted.length === 0 ? (
-        <div className="rounded-[var(--radius-app)] border border-app-line bg-app-surface p-12 text-center">
-          <div className="w-12 h-12 rounded-full bg-app-elevated flex items-center justify-center mx-auto mb-3 text-app-subtle">
-            <Users className="w-6 h-6" />
-          </div>
-          <p className="text-app-text font-medium text-base mb-1">Nenhum membro ativo no momento</p>
-          <p className="text-app-muted text-sm mb-6 max-w-sm mx-auto">
-            Cadastre os membros da sua família para acompanhar e organizar os pagamentos mensais.
-          </p>
+    <div className="space-y-6 pb-4">
+      <PageHeader
+        title="Membros"
+        subtitle={`${vagasOcupadas} de 6 vagas ocupadas`}
+        actions={(
           <Link
             href="/membros/novo"
-            className="inline-flex items-center gap-2 px-6 min-h-[48px] bg-app-accent hover:bg-app-accent-hover text-black font-semibold text-sm rounded-full transition-all duration-200 active:scale-[0.98]"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full bg-app-accent px-5 text-sm font-semibold text-app-accent-ink transition-colors hover:bg-app-accent-hover"
           >
-            <Plus className="w-4 h-4" />
-            <span>Adicionar primeiro membro</span>
+            <Plus aria-hidden className="h-4 w-4" /> Novo
           </Link>
-        </div>
-      ) : (
-        <div className="space-y-2.5">
-          {sorted.map(membro => (
-            <MemberCard
-              key={membro.id}
-              membro={membro}
-              pagamento={pagMap.get(membro.id) || null}
-            />
-          ))}
-        </div>
-      )}
+        )}
+      />
 
-      {/* Seção Arquivados (N) */}
-      {membrosArquivados.length > 0 && (
-        <div className="pt-2">
-          <ArchivedMembers membros={membrosArquivados} />
-        </div>
+      <MemberDirectory membros={itens} vagasOcupadas={vagasOcupadas} vagasPagas={vagasPagas} />
+
+      {arquivados.length > 0 && (
+        <section aria-label="Membros arquivados" className="pt-2">
+          <ArchivedMembers membros={arquivados} />
+        </section>
       )}
     </div>
-  )
-}
-
-function MembersLoadingSkeleton() {
-  return (
-    <div className="space-y-2.5">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div
-          key={i}
-          className="flex items-center gap-3.5 p-4 rounded-[var(--radius-app)] border border-app-line bg-app-surface min-h-[64px]"
-        >
-          <Skeleton className="w-10 h-10" rounded />
-          <div className="flex-1 space-y-2">
-            <Skeleton className="h-4 w-36" />
-            <Skeleton className="h-3 w-48" />
-          </div>
-          <div className="flex flex-col items-end gap-1.5">
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-5 w-20 rounded-full" />
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-export default function MembrosPage() {
-  return (
-    <>
-      <Header title="Membros" />
-
-      <div className="px-4 py-5 lg:px-8 lg:py-8 max-w-3xl mx-auto lg:mx-0">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight text-app-text">
-              Membros
-            </h1>
-            <p className="text-app-muted text-sm mt-0.5">
-              Pessoas que dividem o plano Spotify com você
-            </p>
-          </div>
-          <Link
-            href="/membros/novo"
-            className="flex items-center gap-2 px-5 min-h-[44px] bg-app-accent hover:bg-app-accent-hover text-black font-semibold text-sm rounded-full transition-all duration-200 active:scale-[0.98]"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Adicionar</span>
-          </Link>
-        </div>
-
-        <Suspense fallback={<MembersLoadingSkeleton />}>
-          <MembersContent />
-        </Suspense>
-      </div>
-    </>
   )
 }

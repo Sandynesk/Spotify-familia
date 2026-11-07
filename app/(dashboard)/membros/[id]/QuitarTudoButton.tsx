@@ -2,9 +2,11 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, Loader2 } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 import { Sheet } from '@/components/ui/Sheet'
 import { useToast } from '@/components/ui/Toast'
+import { desfazerVarios } from '@/lib/actions/lote'
 import { quitarPendencias } from '@/lib/actions/pagamentos'
 import { formatCurrency } from '@/lib/utils/currency'
 
@@ -14,6 +16,7 @@ interface QuitarTudoButtonProps {
   totalDivida: number
   mesesFormatados: string
   qtdPendencias: number
+  pagamentoIds: string[]
 }
 
 export function QuitarTudoButton({
@@ -22,40 +25,55 @@ export function QuitarTudoButton({
   totalDivida,
   mesesFormatados,
   qtdPendencias,
+  pagamentoIds,
 }: QuitarTudoButtonProps) {
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
-  const { success, error } = useToast()
+  const { show, error } = useToast()
   const router = useRouter()
+
+  function handleUndo() {
+    startTransition(async () => {
+      try {
+        const result = await desfazerVarios(pagamentoIds)
+        if ('error' in result && result.error) {
+          error(result.error)
+          return
+        }
+        show({ message: 'Pagamentos desfeitos.', type: 'warning' })
+        router.refresh()
+      } catch {
+        error('Não foi possível desfazer os pagamentos.')
+      }
+    })
+  }
 
   function handleQuitar() {
     startTransition(async () => {
       try {
         const result = await quitarPendencias(membroId)
-        if (result && 'error' in result && result.error) {
+        if ('error' in result && result.error) {
           error(result.error)
-        } else {
-          const quitadas = result && 'quitadas' in result ? result.quitadas : qtdPendencias
-          success(`${quitadas} cobrança(s) quitada(s) com sucesso!`)
-          setOpen(false)
-          router.refresh()
+          return
         }
-      } catch (err: unknown) {
-        error(err instanceof Error ? err.message : 'Erro ao quitar pendências')
+        const quitadas = 'quitadas' in result ? result.quitadas : qtdPendencias
+        show({
+          message: `${quitadas} ${quitadas === 1 ? 'cobrança quitada' : 'cobranças quitadas'}.`,
+          action: { label: 'Desfazer', onClick: handleUndo },
+        })
+        setOpen(false)
+        router.refresh()
+      } catch {
+        error('Não foi possível quitar as pendências.')
       }
     })
   }
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="min-h-[44px] px-4 rounded-full bg-app-accent hover:bg-app-accent-hover text-black font-semibold text-sm transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-1.5 flex-shrink-0"
-      >
-        <CheckCircle2 className="w-4 h-4" />
-        <span>Quitar tudo</span>
-      </button>
+      <Button type="button" onClick={() => setOpen(true)} icon={<CheckCircle2 />}>
+        Quitar tudo
+      </Button>
 
       <Sheet
         open={open}
@@ -64,43 +82,24 @@ export function QuitarTudoButton({
         description={`Confirma o pagamento de ${formatCurrency(totalDivida)} referente a ${mesesFormatados}? Todas as cobranças até este mês serão marcadas como pagas.`}
       >
         <div className="mt-4 space-y-4">
-          <div className="rounded-[var(--radius-app-sm)] border border-app-line bg-app-elevated p-4">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-app-muted">Meses pendentes:</span>
-              <span className="text-app-text font-medium capitalize">{mesesFormatados}</span>
+          <div className="rounded-app-sm border border-app-line bg-app-elevated p-4">
+            <div className="flex items-center justify-between gap-3 text-sm">
+              <span className="text-app-muted">Meses pendentes</span>
+              <span className="truncate font-medium capitalize text-app-text">{mesesFormatados}</span>
             </div>
-            <div className="flex items-center justify-between text-sm mt-2 pt-2 border-t border-app-line">
-              <span className="text-app-muted">Total a quitar:</span>
-              <span className="text-app-accent font-semibold text-base tabular-nums">
-                {formatCurrency(totalDivida)}
-              </span>
+            <div className="mt-2 flex items-center justify-between border-t border-app-line pt-2 text-sm">
+              <span className="text-app-muted">Total a quitar</span>
+              <span className="text-base font-semibold tabular text-app-accent">{formatCurrency(totalDivida)}</span>
             </div>
           </div>
 
           <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              disabled={pending}
-              className="flex-1 min-h-[48px] rounded-full border border-app-line bg-app-elevated text-app-text font-medium hover:bg-app-surface transition-colors disabled:opacity-50"
-            >
+            <Button type="button" variant="secondary" className="flex-1" onClick={() => setOpen(false)} disabled={pending}>
               Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={handleQuitar}
-              disabled={pending}
-              className="flex-[2] min-h-[48px] rounded-full bg-app-accent hover:bg-app-accent-hover text-black font-semibold transition-all duration-200 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {pending ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin text-black" />
-                  <span>Quitando...</span>
-                </>
-              ) : (
-                <span>Confirmar pagamento</span>
-              )}
-            </button>
+            </Button>
+            <Button type="button" className="flex-[2]" onClick={handleQuitar} loading={pending}>
+              Confirmar pagamento
+            </Button>
           </div>
         </div>
       </Sheet>
