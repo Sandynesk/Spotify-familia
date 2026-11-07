@@ -23,6 +23,18 @@ export interface DeviceShotProps {
   priority?: boolean
   sizes?: string
   className?: string
+  /**
+   * 'contain-aspect': preserva o aspect-ratio da imagem no contêiner (default).
+   * 'cover': preenche o contêiner (ex.: h-full w-full), alinhando a camada das telas
+   * com a mesma geometria de corte e centralização de `object-cover object-center`.
+   */
+  fit?: 'contain-aspect' | 'cover'
+}
+
+interface LayoutTransform {
+  scale: number
+  offsetX: number
+  offsetY: number
 }
 
 /**
@@ -51,9 +63,10 @@ export function DeviceShot({
   priority = false,
   sizes,
   className,
+  fit = 'contain-aspect',
 }: DeviceShotProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [scale, setScale] = useState<number | null>(null)
+  const [layout, setLayout] = useState<LayoutTransform | null>(null)
 
   useEffect(() => {
     const el = containerRef.current
@@ -62,21 +75,30 @@ export function DeviceShot({
     const ro = new ResizeObserver((entries) => {
       const entry = entries[0]
       if (!entry) return
-      const w = entry.contentRect.width
-      if (w > 0) {
-        setScale(w / width)
+      const cw = entry.contentRect.width
+      const ch = entry.contentRect.height
+      if (cw > 0 && ch > 0) {
+        // Geometria exata do CSS object-fit: cover; object-position: center
+        const scale = Math.max(cw / width, ch / height)
+        const offsetX = (cw - width * scale) / 2
+        const offsetY = (ch - height * scale) / 2
+        setLayout({ scale, offsetX, offsetY })
       }
     })
 
     ro.observe(el)
     return () => ro.disconnect()
-  }, [width, screens.length])
+  }, [width, height, screens.length])
+
+  // Não força aspect-ratio quando o fit for 'cover' ou se a classe der altura explícita
+  const hasExplicitHeight =
+    fit === 'cover' || Boolean(className && /\bh-(?:full|\d+|\[[^\]]+\])/.test(className))
 
   return (
     <div
       ref={containerRef}
       className={cn('relative overflow-hidden', className)}
-      style={{ aspectRatio: `${width} / ${height}` }}
+      style={hasExplicitHeight ? undefined : { aspectRatio: `${width} / ${height}` }}
     >
       <Image
         src={src}
@@ -85,18 +107,18 @@ export function DeviceShot({
         height={height}
         priority={priority}
         sizes={sizes ?? '100vw'}
-        className="h-full w-full object-cover"
+        className="h-full w-full object-cover object-center"
       />
 
-      {/* Camada das telas: escalada do tamanho original para o tamanho renderizado */}
-      {scale !== null && screens.length > 0 && (
+      {/* Camada das telas: alinhada ao mesmo corte/escala de cover da imagem */}
+      {layout !== null && screens.length > 0 && (
         <div
           aria-hidden="true"
           className="pointer-events-none absolute left-0 top-0 select-none"
           style={{
             width: `${width}px`,
             height: `${height}px`,
-            transform: `scale(${scale})`,
+            transform: `translate(${layout.offsetX}px, ${layout.offsetY}px) scale(${layout.scale})`,
             transformOrigin: '0 0',
           }}
         >
