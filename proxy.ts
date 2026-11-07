@@ -11,6 +11,12 @@ export async function proxy(request: NextRequest) {
     if (pathname === '/api/keep-alive') return NextResponse.json({ ok: true, demo: true })
     if (pathname === '/api/auth/callback') return NextResponse.redirect(new URL('/dashboard', request.url))
     if (pathname === '/cadastro') {
+      const isPrefetch = request.headers.get('next-router-prefetch') === '1' ||
+                         request.headers.get('purpose') === 'prefetch' ||
+                         request.nextUrl.searchParams.has('_rsc')
+      if (isPrefetch) {
+        return NextResponse.next()
+      }
       request.cookies.delete('sf_demo')
       request.cookies.delete('sf_demo_sid')
       const response = NextResponse.next({ request })

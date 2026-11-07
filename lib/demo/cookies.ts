@@ -10,7 +10,7 @@ export function setDemoCookies(response: NextResponse, sid: string) {
   const options = {
     httpOnly: true,
     sameSite: 'lax' as const,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.VERCEL === '1',
     path: '/',
     maxAge: DEMO_COOKIE_MAX_AGE,
   }
@@ -24,7 +24,7 @@ export function clearDemoCookies(response: NextResponse) {
   const options = {
     httpOnly: true,
     sameSite: 'lax' as const,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.VERCEL === '1',
     path: '/',
     maxAge: 0,
   }

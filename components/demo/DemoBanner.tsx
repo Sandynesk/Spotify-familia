@@ -14,12 +14,14 @@ export async function DemoBanner() {
       <div className="flex items-center gap-2">
         <Link
           href="/demo/reset"
+          prefetch={false}
           className="inline-flex min-h-10 items-center justify-center rounded-full border border-app-line bg-app-elevated px-4 text-sm font-medium text-app-text transition-colors hover:bg-app-elevated/80"
         >
           Recomeçar
         </Link>
         <Link
           href="/cadastro"
+          prefetch={false}
           className="inline-flex min-h-10 items-center justify-center rounded-full bg-app-accent px-4 text-sm font-semibold text-black transition-colors hover:bg-app-accent-hover"
         >
           Criar minha conta
