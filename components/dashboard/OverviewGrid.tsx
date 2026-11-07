@@ -1,14 +1,21 @@
 'use client'
 
-import { useState, useTransition, useOptimistic, useMemo } from 'react'
-import { Check, AlertCircle, Clock, CheckCheck, Loader2 } from 'lucide-react'
+import { useState, useTransition } from 'react'
+import {
+  CalendarClock,
+  Check,
+  CircleCheck,
+  Clock3,
+  Minus,
+  TriangleAlert,
+} from 'lucide-react'
 import { Avatar } from '@/components/ui/Avatar'
-import { Sheet } from '@/components/ui/Sheet'
+import { Button, Card, SectionHeader, Sheet } from '@/components/ui'
 import { useToast } from '@/components/ui/Toast'
-import { formatCurrency } from '@/lib/utils/currency'
+import { diasDeAtraso } from '@/lib/domain/pontualidade'
+import { desfazerPagamento, marcarPago } from '@/lib/actions/pagamentos'
 import { getCurrentMonthISO, getEffectiveStatus } from '@/lib/utils/date'
-import { marcarPago, desfazerPagamento, quitarPendencias } from '@/lib/actions/pagamentos'
-import { OverviewMemberCard, type OverviewMonthItem } from './OverviewMemberCard'
+import { formatCurrency } from '@/lib/utils/currency'
 import type { Membro, Pagamento, PagamentoStatus } from '@/types/database'
 
 interface OverviewGridProps {
@@ -17,426 +24,200 @@ interface OverviewGridProps {
   ano: number
 }
 
-const MESES_SIGLAS = [
-  'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-  'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
-]
+type CellStatus = 'paid-on-time' | 'paid-late' | 'open' | 'future' | 'outside-plan'
 
-const MESES_NOMES = [
-  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
-  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
-]
-
-interface UndoTarget {
-  membroNome: string
-  mesNome: string
-  mesSigla: string
-  ano: number
-  pagamentoId: string
+interface SelectedCell {
+  membroId: string
   mesRef: string
 }
 
-interface QuitarTarget {
+interface CellDetails {
   membro: Membro
-  meses: OverviewMonthItem[]
-  total: number
+  mesRef: string
+  monthName: string
+  shortMonth: string
+  status: CellStatus
+  pagamento: Pagamento | undefined
+  valor: number
 }
 
-interface OptimisticUpdate {
-  ids: string[]
-  status: PagamentoStatus
+const MONTHS = [
+  { short: 'Jan', full: 'janeiro' },
+  { short: 'Fev', full: 'fevereiro' },
+  { short: 'Mar', full: 'março' },
+  { short: 'Abr', full: 'abril' },
+  { short: 'Mai', full: 'maio' },
+  { short: 'Jun', full: 'junho' },
+  { short: 'Jul', full: 'julho' },
+  { short: 'Ago', full: 'agosto' },
+  { short: 'Set', full: 'setembro' },
+  { short: 'Out', full: 'outubro' },
+  { short: 'Nov', full: 'novembro' },
+  { short: 'Dez', full: 'dezembro' },
+]
+
+const STATUS_LABEL: Record<CellStatus, string> = {
+  'paid-on-time': 'Pago no prazo',
+  'paid-late': 'Pago atrasado',
+  open: 'Em aberto',
+  future: 'Futuro',
+  'outside-plan': 'Fora do plano',
 }
 
-export function OverviewGrid({ membros, pagamentos, ano }: OverviewGridProps) {
-  const { success, error } = useToast()
+const STATUS_STYLE: Record<CellStatus, string> = {
+  'paid-on-time': 'border-app-accent/35 bg-app-accent/12 text-app-accent hover:bg-app-accent/20',
+  'paid-late': 'border-app-danger/35 bg-app-danger/10 text-app-danger hover:bg-app-danger/18',
+  open: 'border-app-warn/35 bg-app-warn/10 text-app-warn hover:bg-app-warn/18',
+  future: 'border-app-line bg-app-elevated/45 text-app-muted hover:bg-app-elevated',
+  'outside-plan': 'border-app-line bg-app-bg/50 text-app-subtle hover:bg-app-elevated/60',
+}
+
+function cellStatus(membro: Membro, pagamento: Pagamento | undefined, mesRef: string): CellStatus {
+  if (membro.data_entrada.slice(0, 7) > mesRef.slice(0, 7)) return 'outside-plan'
+  if (mesRef > getCurrentMonthISO()) return 'future'
+  if (!pagamento || pagamento.status !== 'pago') return 'open'
+  return (diasDeAtraso(pagamento, membro) ?? 0) > 0 ? 'paid-late' : 'paid-on-time'
+}
+
+function statusIcon(status: CellStatus, className: string) {
+  switch (status) {
+    case 'paid-on-time': return <CircleCheck aria-hidden className={className} />
+    case 'paid-late': return <TriangleAlert aria-hidden className={className} />
+    case 'open': return <Clock3 aria-hidden className={className} />
+    case 'future': return <CalendarClock aria-hidden className={className} />
+    case 'outside-plan': return <Minus aria-hidden className={className} />
+  }
+}
+
+export function OverviewGrid({ membros, pagamentos: initialPagamentos, ano }: OverviewGridProps) {
+  const [pagamentos, setPagamentos] = useState(initialPagamentos)
+  const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null)
+  const [pendingId, setPendingId] = useState<string | null>(null)
   const [, startTransition] = useTransition()
-  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set())
+  const toast = useToast()
+  const paymentMap = new Map(pagamentos.map(pagamento => [`${pagamento.membro_id}-${pagamento.mes_referencia.slice(0, 7)}`, pagamento]))
 
-  const [undoTarget, setUndoTarget] = useState<UndoTarget | null>(null)
-  const [isUndoPending, setIsUndoPending] = useState(false)
-
-  const [quitarTarget, setQuitarTarget] = useState<QuitarTarget | null>(null)
-  const [isQuitarPending, setIsQuitarPending] = useState(false)
-
-  // Feedback otimista nativo via useOptimistic (Next 16 / React 19)
-  const [optimisticPagamentos, setOptimisticPagamentos] = useOptimistic(
-    pagamentos,
-    (current: Pagamento[], update: OptimisticUpdate) => {
-      const targetIds = new Set(update.ids)
-      return current.map(p =>
-        targetIds.has(p.id) ? { ...p, status: update.status } : p
-      )
-    }
-  )
-
-  const mesAtualISO = getCurrentMonthISO()
-  const currentYear = new Date().getFullYear()
-  const currentMonthIndex = new Date().getMonth()
-  const isAnoAtual = ano === currentYear
-
-  const gridData = useMemo(() => {
-    const map = new Map<string, Pagamento>()
-
-    optimisticPagamentos.forEach(p => {
-      const key = `${p.membro_id}-${p.mes_referencia}`
-      map.set(key, p)
-    })
-
-    return membros.map(membro => {
-      const meses: OverviewMonthItem[] = MESES_SIGLAS.map((sigla, index) => {
-        const mesRef = `${ano}-${String(index + 1).padStart(2, '0')}-01`
-        const pagamento = map.get(`${membro.id}-${mesRef}`)
-        const isCurrentMonth = isAnoAtual && index === currentMonthIndex
-
+  const selected = selectedCell
+    ? (() => {
+        const membro = membros.find(item => item.id === selectedCell.membroId)
+        if (!membro) return null
+        const monthIndex = Number(selectedCell.mesRef.slice(5, 7)) - 1
+        const pagamento = paymentMap.get(`${membro.id}-${selectedCell.mesRef.slice(0, 7)}`)
+        const status = cellStatus(membro, pagamento, selectedCell.mesRef)
         return {
-          mesRef,
-          mesSigla: sigla,
-          mesNome: MESES_NOMES[index],
-          status: pagamento?.status,
-          valor: Number(pagamento?.valor ?? membro.valor_mensal),
-          pagamentoId: pagamento?.id,
-          isCurrentMonth,
-        }
-      })
+          membro,
+          mesRef: selectedCell.mesRef,
+          monthName: MONTHS[monthIndex].full,
+          shortMonth: MONTHS[monthIndex].short,
+          status,
+          pagamento,
+          valor: pagamento ? Number(pagamento.valor) : status === 'open' ? Number(membro.valor_mensal) : 0,
+        } satisfies CellDetails
+      })()
+    : null
 
-      const mesesNaoPagosAno = meses.filter(m => m.pagamentoId && m.status && m.status !== 'pago')
-      const totalDeveAno = mesesNaoPagosAno.reduce((acc, m) => acc + m.valor, 0)
-      const temAtrasoAno = mesesNaoPagosAno.some(m => m.status === 'atrasado')
-
-      const mesesEmAbertoAteAgora = meses.filter(
-        m => m.pagamentoId && m.status && m.status !== 'pago' && m.mesRef <= mesAtualISO
-      )
-      const totalEmAberto = mesesEmAbertoAteAgora.reduce((acc, m) => acc + m.valor, 0)
-
-      return {
-        membro,
-        meses,
-        totalDeveAno,
-        temAtrasoAno,
-        mesesEmAbertoAteAgora,
-        totalEmAberto,
-      }
-    })
-  }, [membros, optimisticPagamentos, ano, isAnoAtual, currentMonthIndex, mesAtualISO])
-
-  // Ação otimista: marcar como pago
-  function handleMarcarPago(pagamentoId: string, membroNome: string, mesNome: string) {
-    setPendingIds(prev => new Set(prev).add(pagamentoId))
+  function changeStatus(
+    pagamentoId: string,
+    mesRef: string,
+    membroNome: string,
+    nextStatus: PagamentoStatus,
+    showUndo = true,
+  ) {
+    setPendingId(pagamentoId)
 
     startTransition(async () => {
-      setOptimisticPagamentos({ ids: [pagamentoId], status: 'pago' })
-
       try {
-        const res = await marcarPago(pagamentoId)
-        if (res && 'error' in res && res.error) {
-          error(res.error || 'Erro ao marcar pagamento')
-        } else {
-          success(`${membroNome}: ${mesNome} marcado como pago!`)
+        const result = nextStatus === 'pago'
+          ? await marcarPago(pagamentoId)
+          : await desfazerPagamento(pagamentoId, mesRef)
+
+        if ('error' in result && result.error) {
+          toast.error(result.error)
+          return
         }
-      } catch (err: unknown) {
-        error(err instanceof Error ? err.message : 'Erro ao marcar pagamento')
-      } finally {
-        setPendingIds(prev => {
-          const next = new Set(prev)
-          next.delete(pagamentoId)
-          return next
+
+        const dataPagamento = nextStatus === 'pago' ? new Date().toISOString() : null
+        const status = nextStatus === 'pago' ? 'pago' : getEffectiveStatus(mesRef, 'pendente')
+        setPagamentos(current => current.map(pagamento => pagamento.id === pagamentoId
+          ? { ...pagamento, status, data_pagamento: dataPagamento }
+          : pagamento,
+        ))
+        toast.show({
+          message: nextStatus === 'pago' ? `Pagamento de ${membroNome} marcado como pago.` : `Pagamento de ${membroNome} desfeito.`,
+          action: showUndo ? {
+            label: nextStatus === 'pago' ? 'Desfazer' : 'Marcar pago',
+            onClick: () => changeStatus(
+              pagamentoId,
+              mesRef,
+              membroNome,
+              nextStatus === 'pago' ? getEffectiveStatus(mesRef, 'pendente') : 'pago',
+              false,
+            ),
+          } : undefined,
         })
-      }
-    })
-  }
-
-  // Ação: desfazer pagamento após confirmação no Sheet
-  function handleConfirmDesfazer() {
-    if (!undoTarget) return
-    const { pagamentoId, mesRef, membroNome, mesNome } = undoTarget
-    setIsUndoPending(true)
-
-    startTransition(async () => {
-      const newStatus = getEffectiveStatus(mesRef, 'pendente')
-      setOptimisticPagamentos({ ids: [pagamentoId], status: newStatus })
-
-      try {
-        const res = await desfazerPagamento(pagamentoId, mesRef)
-        if (res && 'error' in res && res.error) {
-          error(res.error || 'Erro ao desfazer pagamento')
-        } else {
-          success(`Pagamento de ${membroNome} (${mesNome}) desfeito com sucesso!`)
-          setUndoTarget(null)
-        }
-      } catch (err: unknown) {
-        error(err instanceof Error ? err.message : 'Erro ao desfazer pagamento')
+      } catch (reason) {
+        toast.error(reason instanceof Error ? reason.message : 'Não foi possível atualizar o pagamento.')
       } finally {
-        setIsUndoPending(false)
-      }
-    })
-  }
-
-  // Ação: quitar pendências após confirmação no Sheet
-  function handleConfirmQuitar() {
-    if (!quitarTarget) return
-    const { membro, meses } = quitarTarget
-    const targetIds = meses.map(m => m.pagamentoId).filter(Boolean) as string[]
-    setIsQuitarPending(true)
-
-    startTransition(async () => {
-      setOptimisticPagamentos({ ids: targetIds, status: 'pago' })
-
-      try {
-        const res = await quitarPendencias(membro.id)
-        if ('error' in res && res.error) {
-          error(res.error || 'Erro ao quitar pendências')
-        } else if ('success' in res && res.success) {
-          success(
-            `${res.quitadas} ${
-              res.quitadas === 1 ? 'mês quitado' : 'meses quitados'
-            } para ${membro.nome}!`
-          )
-          setQuitarTarget(null)
-        }
-      } catch (err: unknown) {
-        error(err instanceof Error ? err.message : 'Erro ao quitar pendências')
-      } finally {
-        setIsQuitarPending(false)
+        setPendingId(null)
       }
     })
   }
 
   return (
-    <div className="space-y-4">
-      {/* Legenda com os tokens e estados */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-app-muted bg-app-surface border border-app-line rounded-[var(--radius-app)] px-4 py-3">
-        <div className="flex items-center gap-1.5">
-          <span className="flex h-5 w-5 items-center justify-center rounded-[var(--radius-app-sm)] bg-app-accent/20 text-app-accent border border-app-accent/40 font-semibold text-[10px]">
-            ✓
-          </span>
-          <span>Pago</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="flex h-5 w-5 items-center justify-center rounded-[var(--radius-app-sm)] bg-app-warn/20 text-app-warn border border-app-warn/40 font-semibold text-[10px]">
-            •
-          </span>
-          <span>Pendente</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="flex h-5 w-5 items-center justify-center rounded-[var(--radius-app-sm)] bg-app-danger/20 text-app-danger border border-app-danger/40 font-semibold text-[10px]">
-            !
-          </span>
-          <span>Atrasado</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="flex h-5 w-5 items-center justify-center rounded-[var(--radius-app-sm)] bg-app-elevated/40 text-app-subtle/50 font-semibold text-[10px]">
-            —
-          </span>
-          <span>Sem cobrança</span>
-        </div>
-        {isAnoAtual && (
-          <div className="flex items-center gap-1.5 ml-auto text-app-subtle">
-            <span className="flex h-5 w-5 items-center justify-center rounded-[var(--radius-app-sm)] ring-2 ring-white text-[10px] text-app-text font-bold">
-              {currentMonthIndex + 1}
-            </span>
-            <span>Mês atual</span>
-          </div>
-        )}
+    <Card padding="md" className="min-w-0">
+      <SectionHeader title="Calendário do ano" description="Toque em um mês para ver detalhes e ajustar o pagamento." />
+
+      <div className="mt-4 flex flex-wrap gap-x-3 gap-y-2" aria-label="Legenda dos estados do calendário">
+        <Legend status="paid-on-time" />
+        <Legend status="paid-late" />
+        <Legend status="open" />
+        <Legend status="future" />
+        <Legend status="outside-plan" />
       </div>
 
-      {/* Visão Mobile: Um Card por Membro */}
-      <div className="lg:hidden space-y-3">
-        {gridData.map(({ membro, meses }) => (
-          <OverviewMemberCard
-            key={membro.id}
-            membro={membro}
-            ano={ano}
-            meses={meses}
-            pendingIds={pendingIds}
-            onMarcarPago={handleMarcarPago}
-            onOpenDesfazer={setUndoTarget}
-            onOpenQuitar={setQuitarTarget}
-            mesAtualISO={mesAtualISO}
-          />
-        ))}
-      </div>
-
-      {/* Visão Desktop: Tabela de 12 meses */}
-      <div className="hidden lg:block overflow-x-auto rounded-[var(--radius-app)] border border-app-line bg-app-surface">
-        <table className="w-full min-w-[850px]">
+      <div className="mt-4 max-w-full overflow-x-auto rounded-app-sm border border-app-line overscroll-x-contain">
+        <table className="w-full min-w-[820px] border-separate border-spacing-0 text-left">
+          <caption className="sr-only">Pagamentos de {ano} por membro e mês</caption>
           <thead>
-            <tr className="border-b border-app-line">
-              <th className="sticky left-0 z-10 bg-app-surface text-left px-5 py-3.5 text-xs font-semibold text-app-muted uppercase tracking-wider w-[240px]">
+            <tr>
+              <th scope="col" className="sticky left-0 z-20 min-w-36 border-b border-app-line bg-app-surface px-3 py-3 text-xs font-medium text-app-muted">
                 Membro
               </th>
-              {MESES_SIGLAS.map((mes, idx) => {
-                const isCurrent = isAnoAtual && idx === currentMonthIndex
-                return (
-                  <th
-                    key={mes}
-                    className="px-2 py-3.5 text-center text-xs font-semibold text-app-muted uppercase tracking-wider min-w-[56px]"
-                  >
-                    <span
-                      className={`inline-block px-1.5 py-0.5 rounded ${
-                        isCurrent ? 'bg-app-elevated text-app-text font-bold ring-1 ring-white/70' : ''
-                      }`}
-                    >
-                      {mes}
-                    </span>
-                  </th>
-                )
-              })}
+              {MONTHS.map((month, index) => (
+                <th key={month.short} scope="col" className="min-w-[56px] border-b border-app-line px-1 py-3 text-center text-[11px] font-medium text-app-subtle">
+                  <span aria-label={month.full}>{month.short}</span>
+                  <span className="sr-only"> de {ano}</span>
+                  {ano === new Date().getFullYear() && index === new Date().getMonth() && <span className="sr-only">, mês atual</span>}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {gridData.map(({ membro, meses, totalDeveAno, temAtrasoAno, mesesEmAbertoAteAgora, totalEmAberto }) => (
-              <tr
-                key={membro.id}
-                className="border-b border-app-line last:border-0 hover:bg-app-elevated/40 transition-colors"
-              >
-                {/* Coluna fixa do membro */}
-                <td className="sticky left-0 z-10 bg-app-surface px-5 py-3.5 whitespace-nowrap border-r border-app-line/50">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Avatar nome={membro.nome} cor={membro.cor_avatar} size="sm" />
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-app-text truncate">
-                          {membro.nome}
-                        </p>
-                        <p className="text-xs text-app-muted">
-                          {formatCurrency(Number(membro.valor_mensal))}/mês
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="text-right flex-shrink-0">
-                      {totalDeveAno > 0 ? (
-                        <p
-                          className={`text-xs font-bold tabular-nums ${
-                            temAtrasoAno ? 'text-app-danger' : 'text-app-warn'
-                          }`}
-                        >
-                          Deve {formatCurrency(totalDeveAno)}
-                        </p>
-                      ) : (
-                        <span className="text-xs font-semibold text-app-accent flex items-center justify-end gap-1">
-                          <Check className="w-3 h-3 stroke-[2.5]" /> Em dia
-                        </span>
-                      )}
-
-                      {mesesEmAbertoAteAgora.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setQuitarTarget({
-                              membro,
-                              meses: mesesEmAbertoAteAgora,
-                              total: totalEmAberto,
-                            })
-                          }
-                          className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-app-accent hover:bg-app-accent-hover text-black font-semibold text-[10px] transition-transform active:scale-95"
-                          title={`Quitar ${mesesEmAbertoAteAgora.length} pendências (${formatCurrency(totalEmAberto)})`}
-                        >
-                          <CheckCheck className="w-3 h-3" /> Quitar {mesesEmAbertoAteAgora.length}
-                        </button>
-                      )}
-                    </div>
+            {membros.map(membro => (
+              <tr key={membro.id}>
+                <th scope="row" className="sticky left-0 z-10 min-w-36 border-b border-app-line bg-app-surface px-3 py-2 text-left">
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <Avatar nome={membro.nome} cor={membro.cor_avatar} size="sm" />
+                    <span className="max-w-[5.5rem] truncate text-xs font-medium text-app-text">{membro.nome}</span>
                   </div>
-                </td>
-
-                {/* Colunas dos 12 meses */}
-                {meses.map(mes => {
-                  const isPending = mes.pagamentoId ? pendingIds.has(mes.pagamentoId) : false
-                  const isSemCobranca = !mes.status || !mes.pagamentoId
+                </th>
+                {MONTHS.map((month, index) => {
+                  const mesRef = `${ano}-${String(index + 1).padStart(2, '0')}-01`
+                  const pagamento = paymentMap.get(`${membro.id}-${mesRef.slice(0, 7)}`)
+                  const status = cellStatus(membro, pagamento, mesRef)
+                  const amount = pagamento ? Number(pagamento.valor) : status === 'open' ? Number(membro.valor_mensal) : 0
 
                   return (
-                    <td key={mes.mesRef} className="px-2 py-3 text-center">
-                      {isSemCobranca ? (
-                        <div
-                          role="button"
-                          aria-disabled="true"
-                          aria-label={`${membro.nome}, ${mes.mesNome} de ${ano}, sem cobrança`}
-                          className={`w-9 h-9 mx-auto rounded-[var(--radius-app-sm)] bg-app-elevated/30 text-app-subtle/30 flex items-center justify-center text-xs cursor-not-allowed select-none ${
-                            mes.isCurrentMonth
-                              ? 'ring-2 ring-white/90 ring-offset-1 ring-offset-app-surface'
-                              : ''
-                          }`}
-                          title={`${membro.nome} — ${mes.mesNome} de ${ano}: Sem cobrança`}
-                        >
-                          —
-                        </div>
-                      ) : mes.status === 'pago' ? (
-                        <button
-                          type="button"
-                          disabled={isPending}
-                          onClick={() =>
-                            setUndoTarget({
-                              membroNome: membro.nome,
-                              mesNome: mes.mesNome,
-                              mesSigla: mes.mesSigla,
-                              ano,
-                              pagamentoId: mes.pagamentoId!,
-                              mesRef: mes.mesRef,
-                            })
-                          }
-                          aria-label={`${membro.nome}, ${mes.mesNome} de ${ano}, pago. Toque para desfazer`}
-                          title={`${membro.nome} — ${mes.mesNome} de ${ano}: Pago (${formatCurrency(
-                            mes.valor
-                          )}). Toque para desfazer.`}
-                          className={`w-9 h-9 mx-auto rounded-[var(--radius-app-sm)] bg-app-accent/15 text-app-accent border border-app-accent/30 hover:bg-app-accent/25 active:scale-95 transition-all flex items-center justify-center cursor-pointer ${
-                            mes.isCurrentMonth
-                              ? 'ring-2 ring-white/90 ring-offset-1 ring-offset-app-surface'
-                              : ''
-                          }`}
-                        >
-                          {isPending ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <Check className="w-4 h-4 stroke-[2.5]" />
-                          )}
-                        </button>
-                      ) : mes.status === 'atrasado' ? (
-                        <button
-                          type="button"
-                          disabled={isPending}
-                          onClick={() =>
-                            handleMarcarPago(mes.pagamentoId!, membro.nome, mes.mesNome)
-                          }
-                          aria-label={`${membro.nome}, ${mes.mesNome} de ${ano}, atrasado. Toque para marcar como pago`}
-                          title={`${membro.nome} — ${mes.mesNome} de ${ano}: Atrasado (${formatCurrency(
-                            mes.valor
-                          )}). Toque para marcar como pago.`}
-                          className={`w-9 h-9 mx-auto rounded-[var(--radius-app-sm)] bg-app-danger/15 text-app-danger border border-app-danger/30 hover:bg-app-danger/25 active:scale-95 transition-all flex items-center justify-center cursor-pointer ${
-                            mes.isCurrentMonth
-                              ? 'ring-2 ring-white/90 ring-offset-1 ring-offset-app-surface'
-                              : ''
-                          }`}
-                        >
-                          {isPending ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <AlertCircle className="w-4 h-4 stroke-[2.5]" />
-                          )}
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          disabled={isPending}
-                          onClick={() =>
-                            handleMarcarPago(mes.pagamentoId!, membro.nome, mes.mesNome)
-                          }
-                          aria-label={`${membro.nome}, ${mes.mesNome} de ${ano}, pendente. Toque para marcar como pago`}
-                          title={`${membro.nome} — ${mes.mesNome} de ${ano}: Pendente (${formatCurrency(
-                            mes.valor
-                          )}). Toque para marcar como pago.`}
-                          className={`w-9 h-9 mx-auto rounded-[var(--radius-app-sm)] bg-app-warn/15 text-app-warn border border-app-warn/30 hover:bg-app-warn/25 active:scale-95 transition-all flex items-center justify-center cursor-pointer ${
-                            mes.isCurrentMonth
-                              ? 'ring-2 ring-white/90 ring-offset-1 ring-offset-app-surface'
-                              : ''
-                          }`}
-                        >
-                          {isPending ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <Clock className="w-3.5 h-3.5" />
-                          )}
-                        </button>
-                      )}
+                    <td key={mesRef} className="border-b border-app-line px-1 py-1.5 text-center">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCell({ membroId: membro.id, mesRef })}
+                        aria-label={`${membro.nome}, ${month.full} de ${ano}: ${STATUS_LABEL[status]}${amount ? `, ${formatCurrency(amount)}` : ''}. Ver detalhes`}
+                        aria-haspopup="dialog"
+                        className={`mx-auto flex h-11 w-11 items-center justify-center rounded-app-sm border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent disabled:opacity-50 ${STATUS_STYLE[status]}`}
+                      >
+                        {pendingId === pagamento?.id ? <span role="status" aria-label="Salvando" className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" /> : statusIcon(status, 'h-4 w-4')}
+                      </button>
                     </td>
                   )
                 })}
@@ -446,119 +227,88 @@ export function OverviewGrid({ membros, pagamentos, ano }: OverviewGridProps) {
         </table>
       </div>
 
-      {/* Sheet: Desfazer pagamento */}
       <Sheet
-        open={!!undoTarget}
-        onClose={() => !isUndoPending && setUndoTarget(null)}
-        title={
-          undoTarget
-            ? `Desfazer pagamento de ${undoTarget.membroNome} — ${undoTarget.mesSigla}/${undoTarget.ano}?`
-            : 'Desfazer pagamento?'
-        }
-        description="O status deste mês voltará para pendente ou atrasado."
+        open={selected !== null}
+        onClose={() => setSelectedCell(null)}
+        title={selected ? `${selected.membro.nome} · ${selected.monthName}` : 'Detalhes do pagamento'}
+        description={selected ? `${selected.shortMonth} de ${ano}` : undefined}
       >
-        <div className="space-y-4 pt-2">
-          <div className="rounded-[var(--radius-app-sm)] border border-app-line bg-app-elevated p-3 text-sm text-app-muted">
-            Você está prestes a desfazer a confirmação de pagamento de{' '}
-            <strong className="text-app-text">{undoTarget?.membroNome}</strong> referente ao mês de{' '}
-            <strong className="text-app-text">
-              {undoTarget?.mesNome} de {undoTarget?.ano}
-            </strong>
-            .
-          </div>
-
-          <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2">
-            <button
-              type="button"
-              disabled={isUndoPending}
-              onClick={() => setUndoTarget(null)}
-              className="flex-1 py-3 px-4 rounded-full border border-app-line bg-app-elevated hover:bg-app-elevated/80 text-app-text font-medium text-sm transition-colors disabled:opacity-50 min-h-[44px]"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              disabled={isUndoPending}
-              onClick={handleConfirmDesfazer}
-              className="flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-full bg-app-danger hover:bg-app-danger/90 text-white font-semibold text-sm transition-colors disabled:opacity-50 min-h-[44px]"
-            >
-              {isUndoPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Desfazendo...
-                </>
-              ) : (
-                'Desfazer pagamento'
-              )}
-            </button>
-          </div>
-        </div>
+        {selected && <CellSheet details={selected} pending={pendingId === selected.pagamento?.id} onChange={changeStatus} />}
       </Sheet>
+    </Card>
+  )
+}
 
-      {/* Sheet: Quitar pendências */}
-      <Sheet
-        open={!!quitarTarget}
-        onClose={() => !isQuitarPending && setQuitarTarget(null)}
-        title={
-          quitarTarget
-            ? `Quitar pendências de ${quitarTarget.membro.nome}`
-            : 'Quitar pendências'
-        }
-        description="Quitação de todas as cobranças em aberto até o mês atual."
-      >
-        <div className="space-y-4 pt-2">
-          <div className="rounded-[var(--radius-app-sm)] border border-app-line bg-app-elevated p-4">
-            <p className="text-xs text-app-muted mb-1">Valor total a quitar</p>
-            <p className="text-2xl font-bold text-app-accent tabular-nums">
-              {formatCurrency(quitarTarget?.total ?? 0)}
-            </p>
-            <p className="text-xs text-app-subtle mt-2">
-              {quitarTarget?.meses.length}{' '}
-              {quitarTarget?.meses.length === 1 ? 'mês incluído' : 'meses incluídos'}:
-            </p>
-            <div className="flex flex-wrap gap-1.5 mt-2 max-h-36 overflow-y-auto">
-              {quitarTarget?.meses.map(m => (
-                <span
-                  key={m.mesRef}
-                  className="inline-flex items-center gap-1 rounded-md bg-app-surface px-2.5 py-1 text-xs font-medium text-app-text border border-app-line"
-                >
-                  {m.mesSigla}/{ano} • {formatCurrency(m.valor)}
-                </span>
-              ))}
-            </div>
-          </div>
+function CellSheet({
+  details,
+  pending,
+  onChange,
+}: {
+  details: CellDetails
+  pending: boolean
+  onChange: (id: string, month: string, name: string, status: PagamentoStatus) => void
+}) {
+  const paid = details.status === 'paid-on-time' || details.status === 'paid-late'
+  const canUpdate = details.pagamento && (details.status === 'open' || paid)
+  const status = STATUS_LABEL[details.status]
+  const paidAt = details.pagamento?.data_pagamento
+    ? new Date(details.pagamento.data_pagamento).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+    : null
 
-          <p className="text-xs text-app-muted">
-            Todas as cobranças selecionadas serão confirmadas e marcadas como pagas.
-          </p>
-
-          <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2">
-            <button
-              type="button"
-              disabled={isQuitarPending}
-              onClick={() => setQuitarTarget(null)}
-              className="flex-1 py-3 px-4 rounded-full border border-app-line bg-app-elevated hover:bg-app-elevated/80 text-app-text font-medium text-sm transition-colors disabled:opacity-50 min-h-[44px]"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              disabled={isQuitarPending}
-              onClick={handleConfirmQuitar}
-              className="flex-1 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-full bg-app-accent hover:bg-app-accent-hover text-black font-semibold text-sm transition-colors disabled:opacity-50 min-h-[44px]"
-            >
-              {isQuitarPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Quitando...
-                </>
-              ) : (
-                'Confirmar quitação'
-              )}
-            </button>
-          </div>
+  return (
+    <div className="space-y-5">
+      <div className="rounded-app-sm border border-app-line bg-app-elevated/55 p-4">
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-sm text-app-muted">Estado</span>
+          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-app-text">
+            <span className={`h-2 w-2 rounded-full ${details.status === 'paid-on-time' ? 'bg-app-accent' : details.status === 'paid-late' ? 'bg-app-danger' : details.status === 'open' ? 'bg-app-warn' : 'bg-app-subtle'}`} />
+            {status}
+          </span>
         </div>
-      </Sheet>
+        <div className="mt-3 flex items-center justify-between gap-4">
+          <span className="text-sm text-app-muted">Valor</span>
+          <span className="text-sm font-semibold tabular text-app-text">{details.valor ? formatCurrency(details.valor) : '—'}</span>
+        </div>
+        {paidAt && (
+          <div className="mt-3 flex items-center justify-between gap-4">
+            <span className="text-sm text-app-muted">Recebido em</span>
+            <span className="text-sm text-app-text">{paidAt}</span>
+          </div>
+        )}
+        {details.status === 'outside-plan' && (
+          <p className="mt-3 text-xs text-app-muted">Este mês é anterior à entrada de {details.membro.nome} no plano.</p>
+        )}
+        {details.status === 'future' && <p className="mt-3 text-xs text-app-muted">A cobrança deste mês ainda não venceu.</p>}
+        {!details.pagamento && details.status === 'open' && (
+          <p className="mt-3 text-xs text-app-muted">O registro de cobrança ainda não está disponível para edição.</p>
+        )}
+      </div>
+
+      {canUpdate && details.pagamento && (
+        <Button
+          className="w-full"
+          variant={paid ? 'secondary' : 'primary'}
+          loading={pending}
+          icon={paid ? <Clock3 /> : <Check />}
+          onClick={() => onChange(
+            details.pagamento!.id,
+            details.mesRef,
+            details.membro.nome,
+            paid ? getEffectiveStatus(details.mesRef, 'pendente') : 'pago',
+          )}
+        >
+          {paid ? 'Desfazer pagamento' : 'Marcar como pago'}
+        </Button>
+      )}
     </div>
+  )
+}
+
+function Legend({ status }: { status: CellStatus }) {
+  return (
+    <span className="inline-flex items-center gap-1 text-[11px] text-app-muted">
+      {statusIcon(status, `h-3.5 w-3.5 ${status === 'paid-on-time' ? 'text-app-accent' : status === 'paid-late' ? 'text-app-danger' : status === 'open' ? 'text-app-warn' : 'text-app-subtle'}`)}
+      {STATUS_LABEL[status]}
+    </span>
   )
 }
