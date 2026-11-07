@@ -38,8 +38,12 @@ export function StoryStage({ children }: { children: React.ReactNode }) {
   return (
     <StoryContext.Provider value={{ progress: scrollYProgress, beat }}>
       <div ref={ref} className="relative">
-        <div className="pointer-events-none sticky top-0 -mb-[100svh] h-[100svh] overflow-hidden">
-          <PhoneStage />
+        {/* Camada de trás com a altura do trecho inteiro: o sticky dentro dela solta exatamente no fim
+            da narrativa (com margem negativa o sticky passaria do contêiner em 100svh). */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="sticky top-0 h-[100svh] overflow-hidden">
+            <PhoneStage />
+          </div>
         </div>
         <div className="relative">{children}</div>
       </div>
