@@ -11,59 +11,69 @@ export interface StudioLightsProps {
 /**
  * Iluminação de estúdio de produto premium (Apple keynote style).
  * 100% procedural com Lightformers, sem nenhum arquivo HDR externo nem preset de CDN.
+ * Configurada para máxima leitura e brilho especular do titânio contra o fundo preto.
  */
 export const StudioLights = memo(function StudioLights({ quality }: StudioLightsProps) {
   const resolution = quality === 'high' ? 256 : 128
 
   return (
     <>
-      <ambientLight intensity={0.25} />
-      <directionalLight position={[1.5, 3, 4]} intensity={0.6} />
+      <ambientLight intensity={0.4} />
+      <directionalLight position={[1.5, 4, 4.5]} intensity={1.2} />
 
       <Environment resolution={resolution}>
-        {/* Softbox grande superior */}
+        {/* Key light branco forte de cima-frente — realça o chanfro e o brilho do titânio */}
         <Lightformer
           form="rect"
-          intensity={2.8}
-          position={[0, 5, -0.5]}
-          scale={[8, 4, 1]}
-          rotation={[Math.PI / 2, 0, 0]}
+          intensity={4.5}
+          position={[0, 4.5, 2.5]}
+          scale={[10, 6, 1]}
+          rotation={[Math.PI / 3, 0, 0]}
         />
 
-        {/* Faixa vertical esquerda — desenha o contorno do titânio */}
+        {/* Faixa vertical esquerda mais forte e larga para desenhar a moldura de titânio */}
         <Lightformer
           form="rect"
-          intensity={3.5}
-          position={[-4.5, 0, 1.2]}
-          scale={[0.8, 8, 1]}
+          intensity={6.0}
+          position={[-4.5, 0, 1.5]}
+          scale={[1.8, 10, 1]}
           rotation={[0, Math.PI / 2, 0]}
         />
 
-        {/* Faixa vertical direita — desenha o contorno do titânio */}
+        {/* Faixa vertical direita mais forte e larga para desenhar a moldura de titânio */}
         <Lightformer
           form="rect"
-          intensity={3.5}
-          position={[4.5, 0, 1.2]}
-          scale={[0.8, 8, 1]}
+          intensity={6.0}
+          position={[4.5, 0, 1.5]}
+          scale={[1.8, 10, 1]}
           rotation={[0, -Math.PI / 2, 0]}
         />
 
-        {/* Faixa na cor BRAND.accent atrás e à esquerda — rim light verde característico */}
+        {/* Rim light característico na cor BRAND.accent atrás e à esquerda */}
         <Lightformer
           form="rect"
           color={BRAND.accent}
-          intensity={5.5}
-          position={[-3.5, 0.5, -3.5]}
-          scale={[2.5, 8, 1]}
+          intensity={6.5}
+          position={[-3.8, 0.8, -3.8]}
+          scale={[3.0, 9, 1]}
           rotation={[0, Math.PI / 3, 0]}
         />
 
-        {/* Preenchimento frontal suave para leitura e brilho especular */}
+        {/* Luz de preenchimento frontal para reflexo especular na moldura e lentes */}
         <Lightformer
           form="rect"
-          intensity={0.7}
+          intensity={1.2}
           position={[0, 0, 5]}
           scale={[6, 6, 1]}
+        />
+
+        {/* Luz traseira suave para realçar o vidro fosco e o módulo de câmeras durante o giro */}
+        <Lightformer
+          form="rect"
+          intensity={2.2}
+          position={[2, 2, -4]}
+          scale={[6, 6, 1]}
+          rotation={[0, Math.PI, 0]}
         />
       </Environment>
 
