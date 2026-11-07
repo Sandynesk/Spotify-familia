@@ -28,7 +28,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
         </Link>
         <Link
           href="/"
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-app-line/80 bg-app-surface/60 px-4 text-xs font-medium text-app-muted backdrop-blur-md transition-colors hover:border-app-line-strong hover:text-app-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+          className="inline-flex min-h-11 items-center gap-1 text-xs text-app-muted transition-colors hover:text-app-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
         >
           Voltar ao início <ArrowUpRight aria-hidden className="h-3.5 w-3.5" />
         </Link>

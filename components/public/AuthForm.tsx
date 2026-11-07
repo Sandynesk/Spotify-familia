@@ -277,9 +277,9 @@ export function AuthForm({ mode: initialMode, initialError }: AuthFormProps) {
 
         <Link
           href="/demo"
-          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-app-line/80 bg-app-raised/50 px-4 text-xs font-medium text-app-muted backdrop-blur-sm transition-all hover:border-app-accent/40 hover:bg-app-raised hover:text-app-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+          className="inline-flex min-h-10 w-full items-center justify-center gap-1.5 text-xs font-medium text-app-muted transition-colors hover:text-app-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
         >
-          <Play aria-hidden className="h-3.5 w-3.5 fill-current text-app-accent" />
+          <Play aria-hidden className="h-3 w-3 fill-current text-app-accent" />
           Testar demonstração sem cadastro
         </Link>
 
