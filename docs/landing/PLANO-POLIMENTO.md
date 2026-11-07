@@ -1,5 +1,7 @@
 # Plano de polimento da landing (F5) — para o próximo orquestrador
 
+> **Orquestrador (CEO): comece por `docs/landing/CEO.md`**: é o roteiro passo a passo, com comandos exatos, as perguntas ao usuário e as specs prontas em `docs/landing/specs/`. Este arquivo é a referência de arquitetura, invariantes e lições.
+
 Data: 2026-11-07. Estado de partida: a nova landing está **no ar** em `/` (branch `main`), com build, lint e tsc verdes, revisada por capturas de tela em desktop (1440), mobile (390) e reduced-motion.
 
 Leia este documento inteiro antes de disparar qualquer agente. Ele descreve a arquitetura, as invariantes que não podem quebrar, as tarefas pendentes com critérios de aceite e as lições da rodada anterior.
@@ -178,3 +180,11 @@ O usuário acompanha pelo painel do Orca. Use a CLI `orca` (`C:\Users\esmsa\AppD
 2. Mostre o resultado ao usuário e só então faça o merge na `main` e o `git push`. **O push na `main` publica em produção (Vercel).**
 3. Remova as worktrees de agentes (`git worktree remove`) e as branches `landing/*` já integradas. Nunca remova sem conferir que tudo foi integrado.
 4. Atualize este documento com o que foi feito.
+
+---
+
+## Histórico
+| Data | O que | Quem |
+|---|---|---|
+| 2026-11-07 | Landing nova publicada em produção (commit 9ddc74a) | Claude (orquestrador) + 6 workers Gemini 3.8 Flash High |
+| 2026-11-07 | Manual do CEO + specs T1–T4 escritos para o próximo ciclo | Claude |

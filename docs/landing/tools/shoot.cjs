@@ -1,5 +1,11 @@
-// node shoot.cjs <outDir> [desktop|mobile] [reduced]
-// Captura a landing em pontos-chave da narrativa (beats) e nas seções seguintes.
+// Capturas da landing para revisão visual.
+// Preparação (uma vez, numa pasta FORA do projeto):
+//   mkdir _shots-tool && cd _shots-tool && npm init -y && npm i playwright-core && copie este arquivo para lá
+// Uso:
+//   LANDING_URL=http://localhost:3100/ node shoot.cjs <pastaSaida> [desktop|mobile] [reduced]
+// Requer o Google Chrome instalado (channel: 'chrome'); WebGL via SwiftShader.
+// Saída: 01-hero … 07-paid-3 (beats da narrativa), 08-everyone/detalhes/numbers/cta/footer
+// + JSON com horizontalOverflowPx (deve ser 0) e logs de erro do console.
 const { chromium } = require('playwright-core')
 const path = require('path')
 const fs = require('fs')
