@@ -69,12 +69,11 @@ export function formatBRL(value: number): string {
 
 /**
  * Cor de destaque da LANDING (marca). Exposta como CSS var `--landing-accent` pelo <Landing>.
- * Será trocada pelo verde próprio da nova logo. As telas recriadas do app (screens/) NÃO usam isto:
- * elas usam o verde real do sistema (#1DB954) para ficarem fiéis ao app.
+ * Verde próprio da marca (logo "6 fatias"), distinto do verde do Spotify.
+ * As telas recriadas do app (screens/) NÃO usam isto: elas usam o verde real do sistema (#1DB954)
+ * para ficarem fiéis ao app atual.
  */
-export const BRAND = {
-  accent: '#1DB954',
-} as const
+export { BRAND_COLORS as BRAND } from './brand'
 
 export const LINKS = {
   cadastro: '/login?tab=register',
