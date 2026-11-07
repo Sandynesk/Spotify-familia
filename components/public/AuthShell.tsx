@@ -1,49 +1,63 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { ArrowUpRight, LockKeyhole } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import { BrandMark } from '@/components/landing/BrandMark'
-import { AuthPreview } from '@/components/public/AuthPreview'
+import { Auth3DStage } from '@/components/auth/Auth3DStage'
 
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
-    <main className="relative isolate flex min-h-dvh flex-col overflow-hidden bg-app-bg font-app text-app-text">
-      <div aria-hidden="true" className="pointer-events-none absolute -top-64 left-1/2 h-[560px] w-[900px] -translate-x-1/2 rounded-full bg-app-accent/10 blur-[150px]" />
-      <div aria-hidden="true" className="pointer-events-none absolute -bottom-80 -right-48 h-[520px] w-[520px] rounded-full bg-app-info/[0.06] blur-[160px]" />
+    <main className="relative isolate flex min-h-dvh flex-col overflow-x-clip bg-app-bg font-app text-app-text">
+      {/* Ambient background glows */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-app-accent/10 blur-[140px]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-60 -right-32 h-[450px] w-[450px] rounded-full bg-app-info/[0.06] blur-[150px]"
+      />
 
-      <header className="relative z-10 mx-auto flex w-full max-w-[1320px] items-center justify-between px-5 pt-[max(env(safe-area-inset-top),16px)] sm:px-8 lg:px-10">
-        <Link href="/" aria-label="SpotiFamília, página inicial" className="inline-flex min-h-11 items-center rounded-sm">
+      {/* Top navigation header */}
+      <header className="relative z-20 mx-auto flex w-full max-w-6xl items-center justify-between px-5 pt-[max(env(safe-area-inset-top),16px)] sm:px-8">
+        <Link
+          href="/"
+          aria-label="SpotiFamília, página inicial"
+          className="inline-flex min-h-11 items-center rounded-sm transition-transform hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+        >
           <BrandMark size={28} />
         </Link>
-        <Link href="/" className="inline-flex min-h-11 items-center gap-1.5 rounded-sm text-sm text-app-muted transition-colors hover:text-app-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent">
-          Voltar ao site <ArrowUpRight aria-hidden className="h-4 w-4" />
+        <Link
+          href="/"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-app-line/80 bg-app-surface/60 px-4 text-xs font-medium text-app-muted backdrop-blur-md transition-colors hover:border-app-line-strong hover:text-app-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+        >
+          Voltar ao início <ArrowUpRight aria-hidden className="h-3.5 w-3.5" />
         </Link>
       </header>
 
-      <div className="relative z-10 mx-auto grid w-full max-w-[1320px] flex-1 grid-cols-1 items-center gap-10 px-5 pb-12 pt-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(400px,480px)] lg:gap-16 lg:px-10 lg:py-12">
-        <aside className="hidden min-w-0 flex-col justify-center lg:flex">
-          <div className="mb-7 max-w-[620px]">
-            <p className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-app-accent">
-              <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-app-accent shadow-[0_0_14px_var(--color-app-accent)]" />
-              Seu plano, sob controle
-            </p>
-            <h2 className="text-[clamp(38px,4vw,58px)] font-semibold leading-[1.04] tracking-[-0.045em] text-app-text">
-              Seis vagas.<br />
-              <span className="text-app-accent">Um mês em ordem.</span>
+      {/* Main split content */}
+      <div className="relative z-10 mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 items-center gap-6 px-5 pb-12 pt-4 sm:px-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(380px,440px)] lg:gap-14 lg:py-10">
+        {/* Desktop 3D Showcase */}
+        <aside className="hidden min-w-0 flex-col items-center justify-center lg:flex">
+          <div className="relative h-[480px] w-full max-w-[520px]">
+            <Auth3DStage className="h-full w-full" />
+          </div>
+          <div className="text-center">
+            <h2 className="text-2xl font-semibold tracking-[-0.03em] text-app-text">
+              Música em família. <span className="text-app-accent">Zero atrito.</span>
             </h2>
-            <p className="mt-5 max-w-lg text-base leading-relaxed text-app-muted">
-              Saiba quem já pagou, o que falta receber e quando cada pessoa vence — tudo num só lugar.
+            <p className="mt-2 text-sm text-app-muted">
+              Organize vagas, valores e pagamentos em harmonia.
             </p>
           </div>
-
-          <AuthPreview />
-
-          <p className="mt-4 flex items-center gap-2 text-xs text-app-subtle">
-            <LockKeyhole aria-hidden className="h-4 w-4 text-app-muted" />
-            Acesso seguro à sua organização familiar.
-          </p>
         </aside>
 
-        <section className="mx-auto w-full max-w-[480px] min-w-0" aria-label="Acesso à sua conta">
+        {/* Mobile 3D Hero + Form Section */}
+        <section className="mx-auto w-full max-w-[420px] min-w-0" aria-label="Acesso à sua conta">
+          {/* Mobile 3D orb above form */}
+          <div className="relative mx-auto mb-2 h-44 w-full max-w-[280px] lg:hidden">
+            <Auth3DStage className="h-full w-full" />
+          </div>
+
           {children}
         </section>
       </div>

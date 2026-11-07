@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/Toast'
 import { createClient } from '@/lib/supabase/client'
 import { AuthInput } from '@/components/public/AuthInput'
 import { PasswordStrength } from '@/components/public/PasswordStrength'
+import { SegmentedControl } from '@/components/ui/SegmentedControl'
 
 export type AuthMode = 'login' | 'register'
 type AuthField = 'name' | 'email' | 'password' | 'confirmPassword'
@@ -17,6 +18,11 @@ interface AuthFormProps {
   mode: AuthMode
   initialError?: string
 }
+
+const AUTH_OPTIONS = [
+  { value: 'login', label: 'Entrar' },
+  { value: 'register', label: 'Criar conta' },
+] as const
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -39,9 +45,10 @@ function getSignupError(message: string) {
   return 'Não foi possível criar sua conta agora. Tente novamente.'
 }
 
-export function AuthForm({ mode, initialError }: AuthFormProps) {
+export function AuthForm({ mode: initialMode, initialError }: AuthFormProps) {
   const router = useRouter()
   const { success: toastSuccess } = useToast()
+  const [mode, setMode] = useState<AuthMode>(initialMode)
   const [loading, setLoading] = useState(false)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -51,6 +58,16 @@ export function AuthForm({ mode, initialError }: AuthFormProps) {
   const [formError, setFormError] = useState<string | null>(initialError ?? null)
   const [formSuccess, setFormSuccess] = useState<string | null>(null)
   const registering = mode === 'register'
+
+  function handleModeChange(nextMode: AuthMode) {
+    setMode(nextMode)
+    setFieldErrors({})
+    setFormError(null)
+    setFormSuccess(null)
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', nextMode === 'register' ? '/cadastro' : '/login')
+    }
+  }
 
   function updateField(field: AuthField, value: string, update: (next: string) => void) {
     update(value)
@@ -130,30 +147,41 @@ export function AuthForm({ mode, initialError }: AuthFormProps) {
   }
 
   return (
-    <div>
-      <div className="mb-6">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-app-accent">
-          {registering ? 'Comece por aqui' : 'Bom ter você de volta'}
-        </p>
-        <h1 className="text-[34px] font-semibold leading-[1.1] tracking-[-0.04em] text-app-text">
-          {registering ? 'Crie sua conta' : 'Bem-vindo de volta'}
-        </h1>
-        <p className="mt-2 text-[15px] leading-relaxed text-app-muted">
-          {registering
-            ? 'Organize as vagas e os pagamentos do seu plano.'
-            : 'Entre para acompanhar seu plano e fechar o mês com tranquilidade.'}
-        </p>
-      </div>
+    <div className="w-full">
+      <div className="app-glass rounded-[24px] p-5 shadow-app-float sm:p-7">
+        {/* Mode switcher tabs */}
+        <div className="mb-5">
+          <SegmentedControl
+            options={AUTH_OPTIONS}
+            value={mode}
+            onChange={handleModeChange}
+            aria-label="Opções de autenticação"
+          />
+        </div>
 
-      <div className="app-glass rounded-app p-5 shadow-app-float sm:p-7">
-        <form onSubmit={handleSubmit} noValidate className="space-y-4" aria-label={registering ? 'Criar conta' : 'Entrar'}>
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="space-y-4"
+          aria-label={registering ? 'Criar conta no SpotiFamília' : 'Entrar no SpotiFamília'}
+        >
           {formError && (
-            <p id="auth-form-error" className="rounded-app-sm border border-app-danger/25 bg-app-danger/10 px-3.5 py-3 text-sm leading-relaxed text-app-danger" role="alert" aria-live="assertive">
+            <p
+              id="auth-form-error"
+              className="rounded-app-sm border border-app-danger/25 bg-app-danger/10 px-3.5 py-2.5 text-xs sm:text-sm leading-relaxed text-app-danger"
+              role="alert"
+              aria-live="assertive"
+            >
               {formError}
             </p>
           )}
+
           {formSuccess && (
-            <p className="rounded-app-sm border border-app-accent/25 bg-app-accent/10 px-3.5 py-3 text-sm leading-relaxed text-app-accent" role="status" aria-live="polite">
+            <p
+              className="rounded-app-sm border border-app-accent/25 bg-app-accent/10 px-3.5 py-2.5 text-xs sm:text-sm leading-relaxed text-app-accent"
+              role="status"
+              aria-live="polite"
+            >
               {formSuccess}
             </p>
           )}
@@ -190,7 +218,7 @@ export function AuthForm({ mode, initialError }: AuthFormProps) {
             required
           />
 
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             <AuthInput
               id="auth-password"
               label="Senha"
@@ -221,45 +249,40 @@ export function AuthForm({ mode, initialError }: AuthFormProps) {
             />
           ) : (
             <div className="-mt-1 flex justify-end">
-              <Link href="/recuperar-senha" className="min-h-10 inline-flex items-center rounded-sm px-1 text-sm font-medium text-app-accent transition-colors hover:text-app-accent-hover hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent">
+              <Link
+                href="/recuperar-senha"
+                className="min-h-9 inline-flex items-center rounded-sm px-1 text-xs font-medium text-app-muted transition-colors hover:text-app-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+              >
                 Esqueci minha senha
               </Link>
             </div>
           )}
 
-          <Button type="submit" size="lg" loading={loading} icon={<ArrowRight />} className="mt-1 w-full">
-            {registering ? 'Criar minha conta' : 'Entrar'}
+          <Button
+            type="submit"
+            size="lg"
+            loading={loading}
+            icon={<ArrowRight />}
+            className="mt-2 w-full"
+          >
+            {registering ? 'Criar minha conta' : 'Entrar na conta'}
           </Button>
         </form>
 
-        <Link
-          href="/demo"
-          className="mt-3 inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full border border-app-line-strong bg-app-raised/80 px-5 text-sm font-semibold text-app-text transition-colors hover:bg-app-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
-        >
-          <Play aria-hidden className="h-4 w-4 fill-current" />
-          Experimentar sem cadastro
-        </Link>
-
-        <div className="my-5 flex items-center gap-3" aria-hidden="true">
-          <span className="h-px flex-1 bg-app-line" />
-          <span className="text-xs text-app-subtle">ou</span>
-          <span className="h-px flex-1 bg-app-line" />
+        <div className="my-4 flex items-center gap-3" aria-hidden="true">
+          <span className="h-px flex-1 bg-app-line/60" />
+          <span className="text-[11px] uppercase tracking-wider text-app-subtle">ou</span>
+          <span className="h-px flex-1 bg-app-line/60" />
         </div>
 
-        <p className="text-center text-sm text-app-muted">
-          {registering ? 'Já tem uma conta?' : 'Ainda não tem uma conta?'}{' '}
-          <Link
-            href={registering ? '/login' : '/cadastro'}
-            className="font-semibold text-app-accent transition-colors hover:text-app-accent-hover hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
-          >
-            {registering ? 'Entrar' : 'Criar conta'}
-          </Link>
-        </p>
+        <Link
+          href="/demo"
+          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-app-line/80 bg-app-raised/50 px-4 text-xs font-medium text-app-muted backdrop-blur-sm transition-all hover:border-app-accent/40 hover:bg-app-raised hover:text-app-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-accent"
+        >
+          <Play aria-hidden className="h-3.5 w-3.5 fill-current text-app-accent" />
+          Testar demonstração sem cadastro
+        </Link>
       </div>
-
-      <p className="mt-4 text-center text-xs leading-relaxed text-app-subtle">
-        Seu plano em ordem, com privacidade e sem complicação.
-      </p>
     </div>
   )
 }
