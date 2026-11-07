@@ -52,7 +52,7 @@ export function PhoneScreen({ beat }: PhoneScreenProps) {
             key={view}
             initial={shouldReduce ? false : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={shouldReduce ? false : { opacity: 0, y: -12 }}
+            exit={shouldReduce ? undefined : { opacity: 0, y: -12 }}
             transition={{
               duration: shouldReduce ? 0 : 0.3,
               ease: 'easeOut',

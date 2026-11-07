@@ -1,7 +1,13 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { animate, useReducedMotion } from 'framer-motion'
+import { useEffect, useRef } from 'react'
+import {
+  motion,
+  useMotionValue,
+  useTransform,
+  animate,
+  useReducedMotion,
+} from 'framer-motion'
 import { formatBRL } from '../data'
 
 interface AnimatedCurrencyProps {
@@ -11,8 +17,8 @@ interface AnimatedCurrencyProps {
 }
 
 /**
- * Anima contagem de moeda (BRL) usando animate() do framer-motion e tabular-nums.
- * Com prefers-reduced-motion ou isStatic, exibe o valor imediatamente sem animação.
+ * Anima contagem de moeda (BRL) usando useMotionValue + animate() do framer-motion e tabular-nums.
+ * Com prefers-reduced-motion ou isStatic, exibe o valor formatado diretamente sem hooks de animação.
  */
 export function AnimatedCurrency({
   value,
@@ -20,39 +26,49 @@ export function AnimatedCurrency({
   isStatic = false,
 }: AnimatedCurrencyProps) {
   const shouldReduce = useReducedMotion()
+
+  if (isStatic || shouldReduce) {
+    return (
+      <span className={`tabular-nums ${className}`}>
+        {formatBRL(value)}
+      </span>
+    )
+  }
+
+  return <AnimatedCurrencyDynamic value={value} className={className} />
+}
+
+function AnimatedCurrencyDynamic({
+  value,
+  className = '',
+}: {
+  value: number
+  className?: string
+}) {
+  const motionVal = useMotionValue(value)
   const prevValue = useRef(value)
-  const [displayValue, setDisplayValue] = useState(value)
 
   useEffect(() => {
-    if (isStatic || shouldReduce) {
-      setDisplayValue(value)
-      prevValue.current = value
-      return
-    }
-
-    const start = prevValue.current
+    const from = prevValue.current
     prevValue.current = value
 
-    if (start === value) {
-      setDisplayValue(value)
-      return
+    if (from !== value) {
+      const controls = animate(motionVal, value, {
+        duration: 0.6,
+        ease: [0.16, 1, 0.3, 1],
+      })
+      return () => controls.stop()
     }
+  }, [value, motionVal])
 
-    const controls = animate(start, value, {
-      duration: 0.6,
-      ease: [0.16, 1, 0.3, 1],
-      onUpdate: (latest) => {
-        setDisplayValue(Math.round(latest))
-      },
-    })
-
-    return () => controls.stop()
-  }, [value, isStatic, shouldReduce])
+  const display = useTransform(motionVal, (latest) =>
+    formatBRL(Math.round(latest)),
+  )
 
   return (
-    <span className={`tabular-nums ${className}`}>
-      {formatBRL(isStatic || shouldReduce ? value : displayValue)}
-    </span>
+    <motion.span className={`tabular-nums ${className}`}>
+      {display}
+    </motion.span>
   )
 }
 
@@ -63,7 +79,8 @@ interface AnimatedPercentProps {
 }
 
 /**
- * Anima porcentagem (ex: 65% → 83% → 100%) usando animate() do framer-motion e tabular-nums.
+ * Anima porcentagem (ex: 65% → 83% → 100%) usando useMotionValue + animate() do framer-motion.
+ * Com prefers-reduced-motion ou isStatic, exibe o valor diretamente sem hooks de animação.
  */
 export function AnimatedPercent({
   value,
@@ -71,38 +88,46 @@ export function AnimatedPercent({
   isStatic = false,
 }: AnimatedPercentProps) {
   const shouldReduce = useReducedMotion()
+
+  if (isStatic || shouldReduce) {
+    return (
+      <span className={`tabular-nums ${className}`}>
+        {value}%
+      </span>
+    )
+  }
+
+  return <AnimatedPercentDynamic value={value} className={className} />
+}
+
+function AnimatedPercentDynamic({
+  value,
+  className = '',
+}: {
+  value: number
+  className?: string
+}) {
+  const motionVal = useMotionValue(value)
   const prevValue = useRef(value)
-  const [displayValue, setDisplayValue] = useState(value)
 
   useEffect(() => {
-    if (isStatic || shouldReduce) {
-      setDisplayValue(value)
-      prevValue.current = value
-      return
-    }
-
-    const start = prevValue.current
+    const from = prevValue.current
     prevValue.current = value
 
-    if (start === value) {
-      setDisplayValue(value)
-      return
+    if (from !== value) {
+      const controls = animate(motionVal, value, {
+        duration: 0.6,
+        ease: [0.16, 1, 0.3, 1],
+      })
+      return () => controls.stop()
     }
+  }, [value, motionVal])
 
-    const controls = animate(start, value, {
-      duration: 0.6,
-      ease: [0.16, 1, 0.3, 1],
-      onUpdate: (latest) => {
-        setDisplayValue(Math.round(latest))
-      },
-    })
-
-    return () => controls.stop()
-  }, [value, isStatic, shouldReduce])
+  const display = useTransform(motionVal, (latest) => `${Math.round(latest)}%`)
 
   return (
-    <span className={`tabular-nums ${className}`}>
-      {isStatic || shouldReduce ? value : displayValue}%
-    </span>
+    <motion.span className={`tabular-nums ${className}`}>
+      {display}
+    </motion.span>
   )
 }

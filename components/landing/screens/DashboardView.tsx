@@ -265,7 +265,7 @@ export function DashboardView({ moment, isStatic = false }: DashboardViewProps) 
                         key={`btn-${member.id}`}
                         initial={shouldReduce || isStatic ? false : { scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        exit={shouldReduce || isStatic ? false : { scale: 0.4, opacity: 0 }}
+                        exit={shouldReduce || isStatic ? undefined : { scale: 0.4, opacity: 0 }}
                         transition={{ duration: shouldReduce || isStatic ? 0 : 0.2 }}
                         className="w-6 h-6 rounded-full bg-[#1DB954]/10 flex items-center justify-center"
                       >
