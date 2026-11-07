@@ -49,5 +49,18 @@ export const SHOTS = {
       ],
     ],
   },
-  // everyone: aguardando a nova geração (sem mãos)
+  everyone: {
+    src: '/landing/everyone.webp',
+    width: 1672,
+    height: 941,
+    alt: 'Cinco smartphones de titânio lado a lado sobre uma mesa escura de madeira, em leque.',
+    // ordem: centro (maior), depois da esquerda para a direita
+    screens: [
+      [[693.4, 87], [978, 87], [975.4, 688], [695.7, 688]],
+      [[31.1, 348.8], [258.3, 254.1], [449.3, 745.1], [231, 834.4]],
+      [[348.9, 183.2], [595.5, 134.8], [679.5, 653.5], [452, 696.9]],
+      [[1085.7, 133.8], [1333.9, 187.6], [1216, 702.3], [989.3, 653.4]],
+      [[1418.4, 264], [1642.1, 364.1], [1430.1, 849.9], [1214.5, 754.5]],
+    ],
+  },
 } as const satisfies Record<string, Shot>
