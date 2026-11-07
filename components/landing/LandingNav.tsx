@@ -62,6 +62,12 @@ export function LandingNav() {
         {/* Direita */}
         <div className="flex flex-1 items-center justify-end gap-4">
           <Link
+            href="/demo"
+            className="hidden xl:inline-flex items-center rounded-sm text-[13px] text-[#A1A1A6] transition-colors duration-200 hover:text-white focus-visible:outline-2 focus-visible:outline-(--landing-accent) focus-visible:outline-offset-2"
+          >
+            Experimentar sem cadastro
+          </Link>
+          <Link
             href={LINKS.login}
             className="hidden min-[400px]:inline-flex items-center rounded-sm text-[13px] text-[#A1A1A6] transition-colors duration-200 hover:text-white focus-visible:outline-2 focus-visible:outline-(--landing-accent) focus-visible:outline-offset-2"
           >

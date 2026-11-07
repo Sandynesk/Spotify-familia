@@ -37,12 +37,18 @@ export function FinalCta() {
           <p className="mt-5 text-lg md:text-xl text-[#A1A1A6] font-normal leading-relaxed text-balance">
             Grátis. Sem cartão. Leva um minuto.
           </p>
-          <div className="mt-8 md:mt-10">
+          <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-3 md:mt-10">
             <Link
               href={LINKS.cadastro}
               className="inline-flex items-center justify-center rounded-full bg-(--landing-accent) px-8 py-4 text-base md:text-lg font-medium text-black transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--landing-accent)"
             >
               Começar grátis
+            </Link>
+            <Link
+              href="/demo"
+              className="inline-flex min-h-11 items-center rounded-sm text-xs font-medium text-white/70 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-(--landing-accent) focus-visible:outline-offset-2 sm:text-sm"
+            >
+              Experimentar sem cadastro
             </Link>
           </div>
         </Reveal>

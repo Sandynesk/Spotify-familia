@@ -1,83 +1,95 @@
 'use client'
 
-import React, { useState } from 'react'
-import { cn } from '@/lib/utils'
+import React, { forwardRef, useId, useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-interface AuthInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label: string;
-  icon?: React.ReactNode;
-  error?: string;
+export interface AuthInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'prefix'> {
+  label: string
+  hint?: string
+  error?: string
+  icon?: React.ReactNode
+  describedBy?: string
 }
 
-export const AuthInput = React.forwardRef<HTMLInputElement, AuthInputProps>(
-  ({ className, label, icon, error, type, ...props }, ref) => {
-    const [focused, setFocused] = useState(false)
-    const [showPassword, setShowPassword] = useState(false)
-    
-    const isPassword = type === 'password'
-    const currentType = isPassword ? (showPassword ? 'text' : 'password') : type
-    const hasValue = !!props.value || !!props.defaultValue;
-    const isFloating = focused || hasValue;
+/** Accessible auth field with a password visibility control and inline help. */
+export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(function AuthInput(
+  {
+    className,
+    label,
+    hint,
+    error,
+    icon,
+    describedBy,
+    type,
+    id,
+    'aria-describedby': ariaDescribedBy,
+    'aria-invalid': ariaInvalid,
+    ...inputProps
+  },
+  ref,
+) {
+  const generatedId = useId()
+  const inputId = id ?? `auth-field-${generatedId}`
+  const hintId = `${inputId}-hint`
+  const errorId = `${inputId}-error`
+  const [passwordVisible, setPasswordVisible] = useState(false)
+  const isPassword = type === 'password'
+  const helperIds = [ariaDescribedBy, describedBy, hint ? hintId : undefined, error ? errorId : undefined]
+    .filter(Boolean)
+    .join(' ')
 
-    return (
-      <div className={cn("w-full relative", className)}>
-        <div className="relative">
-          <input
-            {...props}
-            type={currentType}
-            ref={ref}
-            onFocus={(e) => {
-              setFocused(true);
-              props.onFocus?.(e);
-            }}
-            onBlur={(e) => {
-              setFocused(false);
-              props.onBlur?.(e);
-            }}
-            className={cn(
-              "w-full bg-[#2A2A2A] border-none rounded-lg px-4 pt-6 pb-2 text-white text-base md:text-sm outline-none transition-all duration-200",
-              "focus:ring-2 focus:ring-inset focus:ring-[#1DB954] focus:shadow-[0_0_12px_rgba(29,185,84,0.15)]",
-              icon ? "pl-11" : "",
-              isPassword ? "pr-11" : "",
-              error ? "ring-2 ring-inset ring-[#E22134] focus:ring-[#E22134] focus:shadow-[0_0_12px_rgba(226,33,52,0.15)]" : "",
-              className
-            )}
-          />
-          <label 
-            className={cn(
-              "absolute left-4 transition-all duration-200 pointer-events-none text-[#B3B3B3]",
-              isFloating ? "text-xs top-2 font-medium text-[#B3B3B3]" : "text-base md:text-sm top-[18px] md:top-4",
-              icon && !isFloating ? "left-11" : icon && isFloating ? "left-11" : "left-4"
-            )}
+  return (
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <label htmlFor={inputId} className="text-sm font-medium text-app-text">
+        {label}
+        {inputProps.required && <span aria-hidden="true" className="ml-1 text-app-danger">*</span>}
+      </label>
+
+      <div className={cn(
+        'relative flex min-h-[52px] w-full items-center rounded-app-sm border bg-app-elevated transition-[border-color,box-shadow] duration-150 focus-within:border-app-accent focus-within:ring-1 focus-within:ring-app-accent/60',
+        error ? 'border-app-danger focus-within:ring-app-danger/50' : 'border-app-line',
+        inputProps.disabled && 'cursor-not-allowed opacity-50',
+      )}>
+        {icon && (
+          <span aria-hidden="true" className="pointer-events-none absolute left-4 flex text-app-muted">
+            {icon}
+          </span>
+        )}
+        <input
+          {...inputProps}
+          ref={ref}
+          id={inputId}
+          type={isPassword && passwordVisible ? 'text' : type}
+          aria-invalid={error ? true : ariaInvalid}
+          aria-describedby={helperIds || undefined}
+          className={cn(
+            'h-full min-h-12 min-w-0 flex-1 bg-transparent py-3 text-base text-app-text outline-none placeholder:text-app-subtle',
+            icon ? 'pl-11' : 'pl-4',
+            isPassword ? 'pr-12' : 'pr-4',
+            className,
+          )}
+        />
+        {isPassword && (
+          <button
+            type="button"
+            className="absolute right-1 inline-flex h-11 w-11 items-center justify-center rounded-full text-app-muted transition-colors hover:bg-app-raised hover:text-app-text focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-app-accent"
+            onClick={() => setPasswordVisible((visible) => !visible)}
+            aria-label={passwordVisible ? 'Ocultar senha' : 'Mostrar senha'}
+            aria-pressed={passwordVisible}
           >
-            {label}
-          </label>
-          
-          {icon && (
-            <div className="absolute left-4 top-[18px] text-[#B3B3B3]">
-              {icon}
-            </div>
-          )}
-
-          {isPassword && (
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-[18px] text-[#B3B3B3] hover:text-white transition-colors outline-none"
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          )}
-        </div>
-        
-        {error && (
-          <p className="text-[#E22134] text-xs mt-1.5 flex items-center gap-1 font-medium transition-all">
-            {error}
-          </p>
+            {passwordVisible ? <EyeOff aria-hidden className="h-5 w-5" /> : <Eye aria-hidden className="h-5 w-5" />}
+          </button>
         )}
       </div>
-    )
-  }
-)
-AuthInput.displayName = 'AuthInput'
+
+      {hint && <p id={hintId} className="text-xs leading-relaxed text-app-subtle">{hint}</p>}
+      {error && (
+        <p id={errorId} className="flex items-start gap-1.5 text-xs leading-relaxed text-app-danger" role="alert">
+          <span aria-hidden="true" className="mt-0.5">•</span>
+          <span>{error}</span>
+        </p>
+      )}
+    </div>
+  )
+})
