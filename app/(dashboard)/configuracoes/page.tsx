@@ -1,33 +1,25 @@
 export const dynamic = 'force-dynamic'
 
-import { Header } from '@/components/layout/Header'
-import { ConfiguracoesForm } from '@/components/configuracoes/ConfiguracoesForm'
+import { ConfiguracoesScreen } from '@/components/configuracoes/ConfiguracoesScreen'
+import { getMembros } from '@/lib/actions/membros'
 import { getConfiguracoes } from '@/lib/actions/configuracoes'
-import type { Configuracoes } from '@/types/database'
+import { getSession } from '@/lib/auth'
+import { isDemo } from '@/lib/demo/session'
 
 export default async function ConfiguracoesPage() {
-  let config: Configuracoes | null = null
-  let loadError: string | null = null
-
-  try {
-    config = await getConfiguracoes()
-  } catch (err: unknown) {
-    loadError = err instanceof Error ? err.message : 'Não foi possível carregar as configurações atuais'
-  }
+  const [initialConfig, membros, session, demo] = await Promise.all([
+    getConfiguracoes(),
+    getMembros(),
+    getSession(),
+    isDemo(),
+  ])
 
   return (
-    <>
-      <Header title="Configurações" showBack />
-      <div className="px-4 py-5 lg:px-8 lg:py-8 max-w-xl">
-        <div className="hidden lg:block mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight text-app-text">Configurações</h1>
-          <p className="text-app-muted text-sm mt-1">
-            Valores usados no cálculo de custos e nas mensagens de cobrança
-          </p>
-        </div>
-
-        <ConfiguracoesForm initialConfig={config} initialError={loadError} />
-      </div>
-    </>
+    <ConfiguracoesScreen
+      initialConfig={initialConfig}
+      membros={membros}
+      email={session?.user.email ?? ''}
+      isDemo={demo}
+    />
   )
 }
