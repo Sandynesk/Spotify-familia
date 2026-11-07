@@ -1,5 +1,6 @@
 import { Sidebar } from '@/components/layout/Sidebar'
 import { BottomNav } from '@/components/layout/BottomNav'
+import { DemoBanner } from '@/components/demo/DemoBanner'
 import { getSession } from '@/lib/auth'
 import { getMembros } from '@/lib/actions/membros'
 import { getConfiguracoes } from '@/lib/actions/configuracoes'
@@ -21,6 +22,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className={`${geist.variable} font-app min-h-dvh overflow-x-clip bg-app-bg text-app-text antialiased`}>
+      {/* Demo mode banner */}
+      <DemoBanner />
+
       {/* Desktop sidebar */}
       <Sidebar occupiedSlots={occupiedSlots} monthlyValue={configuracoes?.valor_plano ?? null} />
 
