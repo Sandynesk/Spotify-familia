@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import { BrandMark } from '@/components/landing/BrandMark'
-import { Auth3DStage } from '@/components/auth/Auth3DStage'
+import { SpotifyShowcase, SpotifyShowcaseCompact } from '@/components/auth/SpotifyShowcase'
 
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
@@ -10,11 +10,11 @@ export function AuthShell({ children }: { children: ReactNode }) {
       {/* Ambient background glows */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-app-accent/10 blur-[140px]"
+        className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[850px] -translate-x-1/2 rounded-full bg-app-accent/[0.08] blur-[140px]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-60 -right-32 h-[450px] w-[450px] rounded-full bg-app-info/[0.06] blur-[150px]"
+        className="pointer-events-none absolute -bottom-60 -right-32 h-[450px] w-[450px] rounded-full bg-emerald-500/[0.05] blur-[150px]"
       />
 
       {/* Top navigation header */}
@@ -35,27 +35,17 @@ export function AuthShell({ children }: { children: ReactNode }) {
       </header>
 
       {/* Main split content */}
-      <div className="relative z-10 mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 items-center gap-6 px-5 pb-12 pt-4 sm:px-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(380px,440px)] lg:gap-14 lg:py-10">
-        {/* Desktop 3D Showcase */}
+      <div className="relative z-10 mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 items-center gap-8 px-5 pb-12 pt-4 sm:px-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(380px,440px)] lg:gap-14 lg:py-10">
+        {/* Desktop Showcase (Vinyl + Soundwave + Proof) */}
         <aside className="hidden min-w-0 flex-col items-center justify-center lg:flex">
-          <div className="relative h-[480px] w-full max-w-[520px]">
-            <Auth3DStage className="h-full w-full" />
-          </div>
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold tracking-[-0.03em] text-app-text">
-              Música em família. <span className="text-app-accent">Zero atrito.</span>
-            </h2>
-            <p className="mt-2 text-sm text-app-muted">
-              Organize vagas, valores e pagamentos em harmonia.
-            </p>
-          </div>
+          <SpotifyShowcase />
         </aside>
 
-        {/* Mobile 3D Hero + Form Section */}
+        {/* Form Section */}
         <section className="mx-auto w-full max-w-[420px] min-w-0" aria-label="Acesso à sua conta">
-          {/* Mobile 3D orb above form */}
-          <div className="relative mx-auto mb-2 h-44 w-full max-w-[280px] lg:hidden">
-            <Auth3DStage className="h-full w-full" />
+          {/* Mobile Showcase Header */}
+          <div className="relative mx-auto mb-6 w-full max-w-[340px] lg:hidden">
+            <SpotifyShowcaseCompact />
           </div>
 
           {children}

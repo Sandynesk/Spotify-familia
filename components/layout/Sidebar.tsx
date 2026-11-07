@@ -100,12 +100,12 @@ export function Sidebar({ occupiedSlots, monthlyValue, demo = false }: SidebarPr
       </div>
 
       <nav
-        className="min-h-0 flex-1 space-y-3.5 overflow-y-auto scrollbar-none px-1 select-none"
+        className="min-h-0 flex-1 space-y-2.5 overflow-x-hidden overflow-y-auto no-scrollbar scrollbar-none px-1 select-none"
         aria-label="Navegação lateral"
       >
         {groups.map((group) => (
           <section key={group.label}>
-            <h2 className="mb-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-app-subtle select-none">
+            <h2 className="mb-1 px-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-app-subtle select-none">
               {group.label}
             </h2>
             <ul className="space-y-0.5">
@@ -117,7 +117,7 @@ export function Sidebar({ occupiedSlots, monthlyValue, demo = false }: SidebarPr
                       href={href}
                       aria-current={active ? 'page' : undefined}
                       className={cn(
-                        'group relative flex h-9.5 min-h-[38px] items-center gap-3 rounded-app-xs px-3 text-xs font-medium transition-colors select-none',
+                        'group relative flex h-9 min-h-[36px] items-center gap-3 overflow-hidden rounded-app-xs px-2.5 text-xs font-medium transition-colors select-none',
                         active ? 'text-app-text font-semibold' : 'text-app-muted hover:text-app-text hover:bg-app-elevated/50',
                       )}
                     >
@@ -143,7 +143,7 @@ export function Sidebar({ occupiedSlots, monthlyValue, demo = false }: SidebarPr
                         )}
                         strokeWidth={active ? 2 : 1.75}
                       />
-                      <span className="relative z-[1] truncate whitespace-nowrap">{label}</span>
+                      <span className="relative z-[1] min-w-0 flex-1 truncate whitespace-nowrap">{label}</span>
                     </Link>
                   </li>
                 )

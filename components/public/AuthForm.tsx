@@ -282,6 +282,10 @@ export function AuthForm({ mode: initialMode, initialError }: AuthFormProps) {
           <Play aria-hidden className="h-3.5 w-3.5 fill-current text-app-accent" />
           Testar demonstração sem cadastro
         </Link>
+
+        <p className="mt-4 text-center text-[11px] text-app-subtle">
+          🔒 Acesso seguro • Sem cobranças automáticas no cartão
+        </p>
       </div>
     </div>
   )
