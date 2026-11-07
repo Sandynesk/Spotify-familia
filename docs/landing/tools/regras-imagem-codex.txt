@@ -1,0 +1,8 @@
+REGRAS OBRIGATÓRIAS (valem para todas as imagens):
+- Use SUA FERRAMENTA DE GERAÇÃO DE IMAGEM. Gere cada imagem separadamente.
+- NÃO pós-processe, NÃO redesenhe, NÃO recorte, NÃO "corrija" nenhuma imagem com código, scripts, PowerShell, Python ou System.Drawing. O arquivo final deve ser o original do gerador, apenas copiado/renomeado para esta pasta.
+- Use o maior tamanho disponível na orientação pedida.
+- Depois de gerar, copie cada original para esta pasta com o nome exato indicado e liste os caminhos finais.
+- Estilo comum a todas: fotografia de produto fotorrealista nível keynote de lançamento de smartphone flagship; fundo preto profundo; iluminação de estúdio suave com uma luz de recorte (rim light) verde sutil cor #1DB954; profundidade de campo rasa; sem texto, sem letras, sem números, sem logotipos, sem marcas em lugar nenhum.
+- O smartphone: flagship premium genérico, corpo de titânio grafite escovado, bordas finas e retas com cantos arredondados, ilha de câmera frontal em pílula, módulo de três câmeras traseiras em triângulo. SEM logo de nenhuma empresa. NÃO é um iPhone com maçã; é um aparelho genérico sem marca.
+- TODA tela de celular visível de frente deve estar preenchida, de borda a borda da área do display, com magenta sólido, plano e uniforme (#FF00FF), sem reflexo, sem brilho, sem interface, sem gradiente. Isso é uma tela de chroma key para composição posterior.
