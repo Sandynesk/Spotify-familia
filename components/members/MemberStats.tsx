@@ -1,39 +1,39 @@
+import { CalendarDays, Clock3, Flame, Wallet } from 'lucide-react'
+import { Card } from '@/components/ui/Card'
 import { formatCurrency } from '@/lib/utils/currency'
-import type { Pagamento } from '@/types/database'
 
 interface MemberStatsProps {
-  pagamentos: Pagamento[]
+  mediaDias: number | null
+  sequenciaAtual: number
+  totalPago: number
+  mesesNoPlano: number
 }
 
-export function MemberStats({ pagamentos }: MemberStatsProps) {
-  if (pagamentos.length === 0) return null
+export function MemberStats({ mediaDias, sequenciaAtual, totalPago, mesesNoPlano }: MemberStatsProps) {
+  const mediaTexto = mediaDias === null
+    ? 'Sem histórico'
+    : mediaDias === 0
+      ? 'No vencimento'
+      : `${Math.abs(mediaDias).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} d ${mediaDias < 0 ? 'antes' : 'depois'}`
 
-  const pagos = pagamentos.filter(p => p.status === 'pago').length
-  const emAberto = pagamentos.filter(p => p.status === 'pendente' || p.status === 'atrasado').length
-  const totalPago = pagamentos
-    .filter(p => p.status === 'pago')
-    .reduce((acc, p) => acc + Number(p.valor), 0)
+  const stats = [
+    { label: 'Média de dias', value: mediaTexto, icon: Clock3 },
+    { label: 'Sequência atual', value: `${sequenciaAtual} ${sequenciaAtual === 1 ? 'mês' : 'meses'}`, icon: Flame },
+    { label: 'Total pago na vida', value: formatCurrency(totalPago), icon: Wallet },
+    { label: 'Tempo no plano', value: `${mesesNoPlano} ${mesesNoPlano === 1 ? 'mês' : 'meses'}`, icon: CalendarDays },
+  ]
 
   return (
-    <div className="grid grid-cols-3 divide-x divide-app-line rounded-[var(--radius-app)] border border-app-line bg-app-surface p-3 text-center sm:p-4">
-      <div className="px-2">
-        <span className="block text-xs font-medium text-app-muted">Pagos</span>
-        <span className="mt-0.5 block text-lg font-semibold tabular-nums text-app-accent sm:text-xl">
-          {pagos}
-        </span>
-      </div>
-      <div className="px-2">
-        <span className="block text-xs font-medium text-app-muted">Em aberto</span>
-        <span className={`mt-0.5 block text-lg font-semibold tabular-nums sm:text-xl ${emAberto > 0 ? 'text-app-warn' : 'text-app-text'}`}>
-          {emAberto}
-        </span>
-      </div>
-      <div className="px-2">
-        <span className="block text-xs font-medium text-app-muted">Total pago</span>
-        <span className="mt-0.5 block text-lg font-semibold tabular-nums text-app-text sm:text-xl truncate">
-          {formatCurrency(totalPago)}
-        </span>
-      </div>
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {stats.map(({ label, value, icon: Icon }) => (
+        <Card key={label} padding="sm" className="min-w-0">
+          <div className="flex items-center gap-2 text-app-subtle">
+            <Icon aria-hidden className="h-4 w-4 shrink-0" />
+            <span className="truncate text-xs">{label}</span>
+          </div>
+          <p className="mt-2 truncate text-base font-semibold tabular text-app-text" title={value}>{value}</p>
+        </Card>
+      ))}
     </div>
   )
 }
