@@ -6,32 +6,59 @@ import { clearDemoCookies } from '@/lib/demo/cookies'
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Demo requests are handled without constructing or contacting Supabase.
-  if (request.cookies.get('sf_demo')?.value === '1') {
-    if (pathname === '/api/keep-alive') return NextResponse.json({ ok: true, demo: true })
-    if (pathname === '/api/auth/callback') return NextResponse.redirect(new URL('/dashboard', request.url))
-    if (pathname === '/cadastro') {
-      const isPrefetch = request.headers.get('next-router-prefetch') === '1' ||
-                         request.headers.get('purpose') === 'prefetch' ||
-                         request.nextUrl.searchParams.has('_rsc')
-      if (isPrefetch) {
-        return NextResponse.next()
-      }
+  // Rotas de autenticação e rotas de callback do OAuth
+  const isAuthRoute = pathname === '/login' || pathname === '/cadastro' || pathname === '/recuperar-senha'
+  const isAuthCallback = pathname === '/api/auth/callback'
+
+  // Verifica se o request já possui cookies de autenticação do Supabase
+  const hasSupabaseAuth = request.cookies.getAll().some(
+    (c) => (c.name.startsWith('sb-') && c.name.includes('-auth-token')) || c.name.includes('-auth-token')
+  )
+
+  const hasDemoCookie = request.cookies.get('sf_demo')?.value === '1'
+
+  // Se o usuário estiver acessando rotas de login/cadastro/recuperação
+  if (isAuthRoute) {
+    const isPrefetch = request.headers.get('next-router-prefetch') === '1' ||
+                       request.headers.get('purpose') === 'prefetch' ||
+                       request.nextUrl.searchParams.has('_rsc')
+    if (isPrefetch) {
+      return NextResponse.next()
+    }
+    // Ao navegar para login ou cadastro, limpar cookies de demonstração imediatamente
+    if (hasDemoCookie) {
       request.cookies.delete('sf_demo')
       request.cookies.delete('sf_demo_sid')
-      const response = NextResponse.next({ request })
-      clearDemoCookies(response)
-      return response
+      request.cookies.delete('sf_demo_client')
     }
-    if (pathname === '/login') return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
+
+  // Se o usuário possui sessão do Supabase, qualquer resquício de cookies demo deve ser removido
+  if (hasSupabaseAuth && hasDemoCookie) {
+    request.cookies.delete('sf_demo')
+    request.cookies.delete('sf_demo_sid')
+    request.cookies.delete('sf_demo_client')
+  }
+
+  // Demo requests são tratadas SEM consultar o Supabase APENAS se:
+  // 1. O usuário NÃO tiver sessão de auth do Supabase
+  // 2. NÃO for uma rota de autenticação (/login, /cadastro, /recuperar-senha)
+  // 3. NÃO for callback do OAuth (/api/auth/callback)
+  if (!hasSupabaseAuth && !isAuthRoute && !isAuthCallback && request.cookies.get('sf_demo')?.value === '1') {
+    if (pathname === '/api/keep-alive') return NextResponse.json({ ok: true, demo: true })
     if (isDemoProtectedRoute(pathname)) return NextResponse.next()
     return NextResponse.next()
   }
 
-  // Entering or resetting the demo does not require an auth lookup either.
+  // Entrar ou resetar a demo não requer lookup de auth
   if (pathname === '/demo' || pathname === '/demo/reset') return NextResponse.next()
 
   let supabaseResponse = NextResponse.next({ request })
+
+  // Se o usuário tinha cookie de demo mas acessou rota de auth ou já está logado, garante que a resposta limpe os cookies do browser
+  if ((isAuthRoute || hasSupabaseAuth) && hasDemoCookie) {
+    clearDemoCookies(supabaseResponse)
+  }
 
   try {
     const supabase = createServerClient(
@@ -47,6 +74,9 @@ export async function proxy(request: NextRequest) {
             supabaseResponse = NextResponse.next({
               request,
             })
+            if ((isAuthRoute || hasSupabaseAuth) && hasDemoCookie) {
+              clearDemoCookies(supabaseResponse)
+            }
             cookiesToSet.forEach(({ name, value, options }) =>
               supabaseResponse.cookies.set(name, value, options)
             )
@@ -65,11 +95,15 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(url)
     }
 
-    // Se estiver logado e tentar ir para o login, manda para o dashboard
-    if (user && pathname === '/login') {
+    // Se estiver logado e tentar ir para o login ou cadastro, manda para o dashboard
+    if (user && isAuthRoute) {
       const url = request.nextUrl.clone()
       url.pathname = '/dashboard'
-      return NextResponse.redirect(url)
+      const response = NextResponse.redirect(url)
+      if (hasDemoCookie) {
+        clearDemoCookies(response)
+      }
+      return response
     }
 
     return supabaseResponse

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clearDemoCookies } from '@/lib/demo/cookies'
-import { createClient } from '@/lib/supabase/server'
+import { createRealServerClient } from '@/lib/supabase/server'
 
 async function sair(request: NextRequest) {
   const isDemo = request.cookies.get('sf_demo')?.value === '1'
@@ -10,9 +10,11 @@ async function sair(request: NextRequest) {
     return response
   }
 
-  const supabase = await createClient()
+  const supabase = await createRealServerClient()
   await supabase.auth.signOut()
-  return NextResponse.redirect(new URL('/login', request.url), 303)
+  const response = NextResponse.redirect(new URL('/login', request.url), 303)
+  clearDemoCookies(response)
+  return response
 }
 
 export const GET = sair

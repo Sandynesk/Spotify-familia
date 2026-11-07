@@ -161,14 +161,14 @@ export function AuthForm({ mode: initialMode, initialError }: AuthFormProps) {
           return
         }
 
+        await fetch('/api/auth/clear-demo', { method: 'POST' }).catch(() => {})
         if (typeof document !== 'undefined') {
           document.cookie = 'sf_demo=; path=/; max-age=0'
           document.cookie = 'sf_demo_sid=; path=/; max-age=0'
           document.cookie = 'sf_demo_client=; path=/; max-age=0'
         }
         toastSuccess('Bem-vindo de volta!')
-        router.push('/dashboard')
-        router.refresh()
+        window.location.href = '/dashboard'
         return
       }
 
@@ -187,14 +187,14 @@ export function AuthForm({ mode: initialMode, initialError }: AuthFormProps) {
       }
 
       if (data.session) {
+        await fetch('/api/auth/clear-demo', { method: 'POST' }).catch(() => {})
         if (typeof document !== 'undefined') {
           document.cookie = 'sf_demo=; path=/; max-age=0'
           document.cookie = 'sf_demo_sid=; path=/; max-age=0'
           document.cookie = 'sf_demo_client=; path=/; max-age=0'
         }
         toastSuccess('Conta criada com sucesso!')
-        router.push('/dashboard')
-        router.refresh()
+        window.location.href = '/dashboard'
         return
       }
 

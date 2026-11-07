@@ -4,15 +4,8 @@ import { createDemoClient } from '@/lib/demo/client'
 import { randomUUID } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-export async function createClient(): Promise<SupabaseClient> {
+export async function createRealServerClient(): Promise<SupabaseClient> {
   const cookieStore = await cookies()
-
-  // A demo request must never initialize the real Supabase client. A missing
-  // SID still stays isolated in a temporary demo store instead of falling back.
-  if (cookieStore.get('sf_demo')?.value === '1') {
-    const sid = cookieStore.get('sf_demo_sid')?.value || `missing-${randomUUID()}`
-    return createDemoClient(sid)
-  }
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,4 +27,22 @@ export async function createClient(): Promise<SupabaseClient> {
       },
     }
   )
+}
+
+export async function createClient(): Promise<SupabaseClient> {
+  const cookieStore = await cookies()
+
+  // Se o usuário tem cookie de autenticação do Supabase, NUNCA usar cliente de demonstração!
+  const hasSupabaseAuth = cookieStore.getAll().some(
+    (c) => (c.name.startsWith('sb-') && c.name.includes('-auth-token')) || c.name.includes('-auth-token')
+  )
+
+  // A demo request must never initialize the real Supabase client. A missing
+  // SID still stays isolated in a temporary demo store instead of falling back.
+  if (!hasSupabaseAuth && cookieStore.get('sf_demo')?.value === '1') {
+    const sid = cookieStore.get('sf_demo_sid')?.value || `missing-${randomUUID()}`
+    return createDemoClient(sid)
+  }
+
+  return createRealServerClient()
 }

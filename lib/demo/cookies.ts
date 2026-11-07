@@ -27,6 +27,7 @@ export function clearDemoCookies(response: NextResponse) {
     secure: process.env.VERCEL === '1',
     path: '/',
     maxAge: 0,
+    expires: new Date(0),
   }
   response.cookies.set('sf_demo', '', options)
   response.cookies.set('sf_demo_sid', '', options)
