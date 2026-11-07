@@ -39,8 +39,8 @@ export function InsightsSummary({
   const SaldoIcon = saldoNegativo ? TrendingDown : saldoPositivo ? TrendingUp : CircleDollarSign
 
   return (
-    <div className="grid gap-4 xl:grid-cols-12">
-      <Card variant="hero" padding="lg" className="relative min-h-52 overflow-hidden xl:col-span-7">
+    <div className="grid gap-4 xl:grid-cols-12 min-w-0 max-w-full">
+      <Card variant="hero" padding="lg" className="relative min-h-52 overflow-hidden xl:col-span-7 min-w-0">
         <div className="relative z-10 flex h-full flex-col justify-between gap-8">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -67,7 +67,7 @@ export function InsightsSummary({
         </div>
       </Card>
 
-      <div className="grid grid-cols-2 gap-3 xl:col-span-5">
+      <div className="grid grid-cols-2 gap-3 xl:col-span-5 min-w-0">
         <KpiCard
           label="Taxa de recebimento"
           detail="dos valores previstos"
@@ -117,7 +117,7 @@ function KpiCard({
   compact?: boolean
 }) {
   return (
-    <Card padding="sm" className="flex min-h-28 flex-col justify-between sm:min-h-32">
+    <Card padding="sm" className="flex min-h-28 min-w-0 flex-col justify-between sm:min-h-32">
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-medium text-app-muted">{label}</p>
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-app-xs bg-app-elevated text-app-muted [&>svg]:h-4 [&>svg]:w-4">

@@ -78,7 +78,7 @@ export default async function VisaoGeralPage({ searchParams }: PageProps) {
   const emAbertoAgora = Math.max(0, dashboard.summary.totalAReceber - dashboard.summary.totalPago)
 
   return (
-    <div className="space-y-6 pb-8">
+    <div className="space-y-6 pb-8 w-full max-w-full min-w-0 overflow-x-clip">
       <PageHeader
         title="Insights"
         subtitle="A saúde do seu plano e a pontualidade de cada pessoa."

@@ -164,8 +164,11 @@ export function OverviewGrid({ membros, pagamentos: initialPagamentos, ano }: Ov
   }
 
   return (
-    <Card padding="md" className="min-w-0">
-      <SectionHeader title="Calendário do ano" description="Toque em um mês para ver detalhes e ajustar o pagamento." />
+    <Card padding="md" className="min-w-0 max-w-full overflow-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+        <SectionHeader title="Calendário do ano" description="Toque em um mês para ver detalhes e ajustar o pagamento." />
+        <span className="text-[11px] font-medium text-app-subtle sm:hidden">Deslize para os lados ⇄</span>
+      </div>
 
       <div className="mt-4 flex flex-wrap gap-x-3 gap-y-2" aria-label="Legenda dos estados do calendário">
         <Legend status="paid-on-time" />
@@ -175,8 +178,8 @@ export function OverviewGrid({ membros, pagamentos: initialPagamentos, ano }: Ov
         <Legend status="outside-plan" />
       </div>
 
-      <div className="relative mt-4">
-        <div className="max-w-full overflow-x-auto scrollbar-thin rounded-app-sm border border-app-line overscroll-x-contain">
+      <div className="relative mt-4 w-full min-w-0 overflow-hidden">
+        <div className="w-full max-w-full overflow-x-auto scrollbar-thin rounded-app-sm border border-app-line overscroll-x-contain">
         <table className="w-full min-w-[820px] border-separate border-spacing-0 text-left select-none">
           <caption className="sr-only">Pagamentos de {ano} por membro e mês</caption>
           <thead>

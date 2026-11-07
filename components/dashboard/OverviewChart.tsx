@@ -74,7 +74,7 @@ export function OverviewChart({ data, ano, valorPlano }: OverviewChartProps) {
   })), [data, valorPlano])
 
   return (
-    <Card padding="md" className="h-full min-w-0">
+    <Card padding="md" className="h-full w-full min-w-0 max-w-full overflow-hidden">
       <SectionHeader title={`Movimento mensal · ${ano}`} description="Previsto, recebido e custo do plano" />
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-app-muted" aria-label="Legenda do gráfico">
         <Legend color="bg-app-elevated" label="Previsto" />
@@ -82,7 +82,7 @@ export function OverviewChart({ data, ano, valorPlano }: OverviewChartProps) {
         <Legend color="bg-app-warn" label="Valor do plano" line />
       </div>
 
-      <div className="mt-4 h-[260px] w-full" role="img" aria-label={`Gráfico mensal de previsto, arrecadado e valor do plano em ${ano}`}>
+      <div className="mt-4 h-[260px] w-full min-w-0 overflow-hidden" role="img" aria-label={`Gráfico mensal de previsto, arrecadado e valor do plano em ${ano}`}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={chartData} margin={{ top: 8, right: 4, bottom: 0, left: 0 }} barGap={3} barCategoryGap="24%">
             <CartesianGrid stroke="var(--color-app-line)" strokeDasharray="3 4" vertical={false} />

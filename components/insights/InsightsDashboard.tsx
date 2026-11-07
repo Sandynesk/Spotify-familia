@@ -50,7 +50,7 @@ export function InsightsDashboard({
   previsao,
 }: InsightsDashboardProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full max-w-full min-w-0">
       <InsightsSummary
         ano={ano}
         saldo={saldo}
@@ -76,7 +76,7 @@ export function InsightsDashboard({
         />
       ) : (
         <>
-          <div className="grid gap-4 xl:grid-cols-12">
+          <div className="grid gap-4 xl:grid-cols-12 min-w-0 max-w-full">
             <div className="min-w-0 xl:col-span-7">
               <OverviewChart data={serie} ano={ano} valorPlano={valorPlano} />
             </div>
@@ -85,9 +85,11 @@ export function InsightsDashboard({
             </div>
           </div>
 
-          <OverviewGrid membros={membros} pagamentos={pagamentos} ano={ano} />
+          <div className="w-full max-w-full min-w-0">
+            <OverviewGrid membros={membros} pagamentos={pagamentos} ano={ano} />
+          </div>
 
-          <div className="grid gap-4 xl:grid-cols-12">
+          <div className="grid gap-4 xl:grid-cols-12 min-w-0 max-w-full">
             <div className="min-w-0 xl:col-span-7">
               <InsightsRanking ranking={ranking} />
             </div>

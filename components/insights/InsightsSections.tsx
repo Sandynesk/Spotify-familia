@@ -18,7 +18,7 @@ import type { RankedMember } from '@/components/insights/InsightsDashboard'
 
 export function InsightsForecast({ previsao }: { previsao: PrevisaoMensal[] }) {
   return (
-    <Card padding="md" className="h-full">
+    <Card padding="md" className="h-full min-w-0 max-w-full overflow-hidden">
       <SectionHeader title="Previsão" description="O valor contratado para os próximos meses" />
       <div className="mt-4 divide-y divide-app-line">
         {previsao.map(item => (
@@ -48,7 +48,7 @@ export function InsightsRanking({ ranking }: { ranking: RankedMember[] }) {
   const demais = ranking.filter(item => !podioIds.has(item.membroId))
 
   return (
-    <Card padding="md" className="h-full">
+    <Card padding="md" className="h-full min-w-0 max-w-full overflow-hidden">
       <SectionHeader title="Pontualidade" description="Quem costuma pagar no prazo" />
 
       {podio.length > 0 ? (
@@ -112,7 +112,7 @@ export function InsightsRanking({ ranking }: { ranking: RankedMember[] }) {
 
 export function RetrospectiveInvite({ ano }: { ano: number }) {
   return (
-    <Card padding="md" className="flex h-full flex-col justify-between gap-5 border-app-line-strong">
+    <Card padding="md" className="flex h-full min-w-0 max-w-full flex-col justify-between gap-5 border-app-line-strong overflow-hidden">
       <div>
         <span className="flex h-10 w-10 items-center justify-center rounded-app-xs bg-app-accent/10 text-app-accent">
           <Sparkles aria-hidden className="h-5 w-5" />
