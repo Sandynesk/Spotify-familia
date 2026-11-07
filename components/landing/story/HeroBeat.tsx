@@ -22,7 +22,7 @@ export function HeroBeat() {
         </div>
 
         {/* H1 em duas linhas (LCP: visível no primeiro paint, sem opacity: 0 inicial) */}
-        <h1 className="animate-hero-rise text-[clamp(48px,7.2vw,104px)] font-bold tracking-[-0.035em] leading-[1.02] text-balance">
+        <h1 className="animate-hero-rise text-[clamp(44px,5.8vw,84px)] font-bold tracking-[-0.035em] leading-[1.02] text-balance">
           <span className="block text-white">Plano Família.</span>
           <span className="block text-(--landing-accent)">Finalmente em ordem.</span>
         </h1>
